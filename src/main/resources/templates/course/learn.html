@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Learning: [[${course.title}]] - EduSmart</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid py-3">
+            <!-- Course Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="breadcrumb-item"><a href="/courses">Courses</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/courses/{id}(id=${course.id})}" th:text="${course.title}"></a></li>
+                            <li class="breadcrumb-item active">Learning</li>
+                        </ol>
+                    </nav>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-1" th:text="${course.title}"></h1>
+                            <p class="text-muted mb-0">Continue your learning journey</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="progress mb-2" style="width: 200px; height: 8px;">
+                                <div class="progress-bar bg-success"
+                                     th:style="'width: ' + ${progressPercentage or 0} + '%'"
+                                     th:attr="aria-valuenow=${progressPercentage or 0}"></div>
+                            </div>
+                            <small class="text-muted" th:text="${progressPercentage or 0} + '% Complete'"></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <!-- Current Lesson Content -->
+                    <div class="card mb-4" id="lesson-content">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" id="lesson-title">
+                                <span th:if="${currentLesson != null}" th:text="${currentLesson.title}"></span>
+                                <span th:if="${currentLesson == null}">Select a lesson to begin</span>
+                            </h5>
+                            <div class="lesson-navigation">
+                                <button class="btn btn-sm btn-outline-secondary me-2" id="prev-lesson" disabled>
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="next-lesson">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" id="lesson-body">
+                            <div th:if="${currentLesson == null}" class="text-center py-5">
+                                <i class="bi bi-play-circle display-1 text-muted mb-3"></i>
+                                <h4 class="text-muted">Ready to start learning?</h4>
+                                <p class="text-muted">Select a lesson from the sidebar to begin your course.</p>
+                            </div>
+
+                            <div th:if="${currentLesson != null}">
+                                <div class="lesson-video mb-4" th:if="${currentLesson.videoUrl != null}">
+                                    <div class="ratio ratio-16x9">
+                                        <iframe th:src="${currentLesson.videoUrl}"
+                                                title="Lesson Video"
+                                                allowfullscreen></iframe>
+                                    </div>
+                                </div>
+
+                                <div class="lesson-content">
+                                    <div th:utext="${currentLesson.content}"></div>
+                                </div>
+
+                                <!-- Lesson Materials -->
+                                <div class="lesson-materials mt-4" th:if="${currentLesson.materials != null and !currentLesson.materials.empty}">
+                                    <h6>Materials & Resources</h6>
+                                    <div class="list-group">
+                                        <a th:each="material : ${currentLesson.materials}"
+                                           th:href="@{/api/files/download/{id}(id=${material.id})}"
+                                           class="list-group-item list-group-item-action d-flex align-items-center">
+                                            <i class="bi bi-file-earmark me-3"></i>
+                                            <div class="flex-grow-1">
+                                                <div th:text="${material.originalName}"></div>
+                                                <small class="text-muted" th:text="${#numbers.formatDecimal(material.size / 1024 / 1024, 1, 2)} + ' MB'"></small>
+                                            </div>
+                                            <i class="bi bi-download text-primary"></i>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Mark as Complete Button -->
+                                <div class="text-center mt-4">
+                                    <button class="btn btn-success btn-lg" id="complete-lesson">
+                                        <i class="bi bi-check-circle me-2"></i>Mark as Complete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Discussion Section -->
+                    <div class="card" id="lesson-discussion">
+                        <div class="card-header">
+                            <h5 class="mb-0">Discussion</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="discussion-messages" class="mb-3" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Messages will be loaded here -->
+                            </div>
+
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="discussion-input"
+                                       placeholder="Share your thoughts..." maxlength="500">
+                                <button class="btn btn-primary" id="send-message">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Course Progress -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Course Progress</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress-circle bg-success text-white mx-auto mb-3">
+                                <span th:text="${progressPercentage or 0} + '%'"></span>
+                            </div>
+                            <div class="text-center">
+                                <small class="text-muted d-block">Overall Progress</small>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-success"
+                                         th:style="'width: ' + ${progressPercentage or 0} + '%'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course Curriculum -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Course Content</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush" id="lesson-list">
+                                <a th:each="lesson : ${lessons}"
+                                   th:href="@{/courses/{courseId}/learn(courseId=${course.id}, lessonId=${lesson.id})}"
+                                   class="list-group-item list-group-item-action d-flex align-items-center lesson-item"
+                                   th:classappend="${lesson.id == currentLessonId} ? 'active'"
+                                   th:data-lesson-id="${lesson.id}">
+                                    <div class="lesson-icon me-3">
+                                        <i class="bi bi-play-circle text-primary"
+                                           th:classappend="${lesson.completed} ? 'bi-check-circle text-success'"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small" th:text="${lesson.title}"></div>
+                                        <small class="text-muted">15 min</small>
+                                    </div>
+                                    <div th:if="${lesson.completed}" class="badge bg-success">Done</div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Quick Actions</h6>
+                        </div>
+                        <div class="card-body d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" id="take-quiz">
+                                <i class="bi bi-question-circle me-2"></i>Take Quiz
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" id="download-certificate">
+                                <i class="bi bi-award me-2"></i>Get Certificate
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" id="contact-instructor">
+                                <i class="bi bi-envelope me-2"></i>Contact Instructor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            // Learning page specific JavaScript
+            document.addEventListener('DOMContentLoaded', function() {
+                const courseId = '[[${course.id}]]';
+                const currentLessonId = '[[${currentLessonId ?: null}]]';
+
+                // Initialize WebSocket connection for real-time features
+                EduSmart.realtime.init(courseId);
+
+                // Initialize lesson navigation
+                EduSmart.learning.init(courseId, currentLessonId);
+
+                // Initialize discussion
+                EduSmart.discussion.init(courseId);
+            });
+
+            // Extend EduSmart with learning-specific functionality
+            EduSmart.realtime = {
+                stompClient: null,
+
+                init: function(courseId) {
+                    if (typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined') {
+                        this.connect(courseId);
+                    }
+                },
+
+                connect: function(courseId) {
+                    const socket = new SockJS('/ws');
+                    this.stompClient = Stomp.over(socket);
+
+                    this.stompClient.connect({}, (frame) => {
+                        console.log('Connected to learning WebSocket');
+
+                        // Subscribe to course progress updates
+                        this.stompClient.subscribe('/topic/course/' + courseId + '/progress', (message) => {
+                            const progress = JSON.parse(message.body);
+                            this.updateProgress(progress);
+                        });
+
+                        // Subscribe to discussion messages
+                        this.stompClient.subscribe('/topic/course/' + courseId + '/discussion', (message) => {
+                            const discussionMessage = JSON.parse(message.body);
+                            EduSmart.discussion.addMessage(discussionMessage);
+                        });
+                    }, (error) => {
+                        console.error('WebSocket connection error:', error);
+                    });
+                },
+
+                updateProgress: function(progress) {
+                    // Update progress indicators
+                    const progressBars = document.querySelectorAll('.progress-bar');
+                    progressBars.forEach(bar => {
+                        bar.style.width = progress.percentage + '%';
+                    });
+
+                    const progressTexts = document.querySelectorAll('.progress-text');
+                    progressTexts.forEach(text => {
+                        text.textContent = progress.percentage + '% Complete';
+                    });
+                }
+            };
+
+            EduSmart.learning = {
+                courseId: null,
+                currentLessonId: null,
+
+                init: function(courseId, currentLessonId) {
+                    this.courseId = courseId;
+                    this.currentLessonId = currentLessonId;
+
+                    this.bindLessonNavigation();
+                    this.bindCompletionActions();
+                },
+
+                bindLessonNavigation: function() {
+                    const lessonItems = document.querySelectorAll('.lesson-item');
+                    lessonItems.forEach(item => {
+                        item.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const lessonId = item.dataset.lessonId;
+                            this.loadLesson(lessonId);
+                        });
+                    });
+
+                    // Previous/Next navigation
+                    document.getElementById('prev-lesson').addEventListener('click', () => {
+                        this.navigateLesson('prev');
+                    });
+
+                    document.getElementById('next-lesson').addEventListener('click', () => {
+                        this.navigateLesson('next');
+                    });
+                },
+
+                bindCompletionActions: function() {
+                    document.getElementById('complete-lesson').addEventListener('click', () => {
+                        this.completeLesson();
+                    });
+                },
+
+                loadLesson: function(lessonId) {
+                    // AJAX call to load lesson content
+                    fetch(`/api/courses/${this.courseId}/lessons/${lessonId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.updateLessonContent(data);
+                            this.currentLessonId = lessonId;
+                            this.updateNavigationButtons();
+                        })
+                        .catch(error => {
+                            console.error('Error loading lesson:', error);
+                            EduSmart.utils.showToast('Failed to load lesson', 'error');
+                        });
+                },
+
+                updateLessonContent: function(lesson) {
+                    document.getElementById('lesson-title').textContent = lesson.title;
+                    document.getElementById('lesson-body').innerHTML = lesson.content;
+
+                    // Update active lesson in sidebar
+                    document.querySelectorAll('.lesson-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    document.querySelector(`[data-lesson-id="${lesson.id}"]`).classList.add('active');
+                },
+
+                navigateLesson: function(direction) {
+                    const lessons = Array.from(document.querySelectorAll('.lesson-item'));
+                    const currentIndex = lessons.findIndex(item =>
+                        item.classList.contains('active')
+                    );
+
+                    let newIndex;
+                    if (direction === 'next') {
+                        newIndex = Math.min(currentIndex + 1, lessons.length - 1);
+                    } else {
+                        newIndex = Math.max(currentIndex - 1, 0);
+                    }
+
+                    if (newIndex !== currentIndex) {
+                        const newLessonId = lessons[newIndex].dataset.lessonId;
+                        this.loadLesson(newLessonId);
+                    }
+                },
+
+                updateNavigationButtons: function() {
+                    const lessons = Array.from(document.querySelectorAll('.lesson-item'));
+                    const currentIndex = lessons.findIndex(item =>
+                        item.classList.contains('active')
+                    );
+
+                    const prevBtn = document.getElementById('prev-lesson');
+                    const nextBtn = document.getElementById('next-lesson');
+
+                    prevBtn.disabled = currentIndex === 0;
+                    nextBtn.disabled = currentIndex === lessons.length - 1;
+                },
+
+                completeLesson: function() {
+                    const button = document.getElementById('complete-lesson');
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Completing...';
+
+                    fetch(`/api/courses/${this.courseId}/lessons/${this.currentLessonId}/complete`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        EduSmart.utils.showToast('Lesson completed!', 'success');
+                        button.innerHTML = '<i class="bi bi-check-circle me-2"></i>Completed';
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-secondary');
+
+                        // Update progress
+                        if (EduSmart.realtime.stompClient) {
+                            // Progress will be updated via WebSocket
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error completing lesson:', error);
+                        EduSmart.utils.showToast('Failed to complete lesson', 'error');
+                        button.disabled = false;
+                        button.innerHTML = '<i class="bi bi-check-circle me-2"></i>Mark as Complete';
+                    });
+                }
+            };
+
+            EduSmart.discussion = {
+                courseId: null,
+
+                init: function(courseId) {
+                    this.courseId = courseId;
+                    this.loadMessages();
+                    this.bindMessageSending();
+                },
+
+                loadMessages: function() {
+                    fetch(`/api/courses/${this.courseId}/discussion`)
+                        .then(response => response.json())
+                        .then(messages => {
+                            const container = document.getElementById('discussion-messages');
+                            container.innerHTML = '';
+                            messages.forEach(message => this.addMessage(message));
+                        })
+                        .catch(error => console.error('Error loading discussion:', error));
+                },
+
+                addMessage: function(message) {
+                    const container = document.getElementById('discussion-messages');
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'discussion-message mb-3';
+                    messageElement.innerHTML = `
+                        <div class="d-flex">
+                            <img src="https://via.placeholder.com/32x32/6c757d/ffffff?text=U"
+                                 alt="User" class="rounded-circle me-3">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold small">${message.userName}</div>
+                                <div class="text-muted small">${new Date(message.timestamp).toLocaleString()}</div>
+                                <div class="mt-1">${message.content}</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(messageElement);
+                    container.scrollTop = container.scrollHeight;
+                },
+
+                bindMessageSending: function() {
+                    const input = document.getElementById('discussion-input');
+                    const sendBtn = document.getElementById('send-message');
+
+                    const sendMessage = () => {
+                        const content = input.value.trim();
+                        if (content) {
+                            this.sendMessage(content);
+                            input.value = '';
+                        }
+                    };
+
+                    sendBtn.addEventListener('click', sendMessage);
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            sendMessage();
+                        }
+                    });
+                },
+
+                sendMessage: function(content) {
+                    fetch(`/api/courses/${this.courseId}/discussion`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ content: content })
+                    })
+                    .then(response => response.json())
+                    .then(message => {
+                        this.addMessage(message);
+                    })
+                    .catch(error => {
+                        console.error('Error sending message:', error);
+                        EduSmart.utils.showToast('Failed to send message', 'error');
+                    });
+                }
+            };
+        </script>
+    </div>
+</body>
+</html>

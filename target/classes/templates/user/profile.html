@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Profile - EduSmart</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container py-5">
+            <div class="row">
+                <!-- Profile Header -->
+                <div class="col-12 mb-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center mb-3 mb-md-0">
+                                    <div class="position-relative d-inline-block">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                             style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <button class="btn btn-sm btn-light rounded-circle position-absolute bottom-0 end-0"
+                                                style="width: 35px; height: 35px;">
+                                            <i class="fas fa-camera"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-10">
+                                    <h3 class="mb-1" sec:authentication="name">Username</h3>
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-envelope me-2"></i><span sec:authentication="principal.email">email@example.com</span>
+                                    </p>
+                                    <span class="badge bg-primary me-2">
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        <span sec:authorize="hasRole('STUDENT')">Student</span>
+                                        <span sec:authorize="hasRole('INSTRUCTOR')">Instructor</span>
+                                        <span sec:authorize="hasRole('ADMIN')">Administrator</span>
+                                    </span>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Information -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>Profile Information
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Full Name</label>
+                                        <input type="text" class="form-control" placeholder="John Doe" sec:authentication="name">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Username</label>
+                                        <input type="text" class="form-control" placeholder="johndoe" sec:authentication="principal.username">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Email Address</label>
+                                        <input type="email" class="form-control" placeholder="john@example.com" sec:authentication="principal.email">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Phone Number</label>
+                                        <input type="tel" class="form-control" placeholder="+1 234 567 8900">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Bio</label>
+                                        <textarea class="form-control" rows="3" placeholder="Tell us about yourself..."></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Location</label>
+                                        <input type="text" class="form-control" placeholder="City, Country">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Website/Portfolio</label>
+                                        <input type="url" class="form-control" placeholder="https://example.com">
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats & Actions -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2 text-primary"></i>Quick Stats
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                <div>
+                                    <small class="text-muted">Total Courses</small>
+                                    <h4 class="mb-0 text-primary">12</h4>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-book text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                <div>
+                                    <small class="text-muted">Certificates</small>
+                                    <h4 class="mb-0 text-success">8</h4>
+                                </div>
+                                <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-certificate text-success"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">Learning Hours</small>
+                                    <h4 class="mb-0 text-info">148</h4>
+                                </div>
+                                <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-clock text-info"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cog me-2 text-primary"></i>Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <a href="/certificates" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-certificate me-2"></i>My Certificates
+                            </a>
+                            <a href="/settings" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="fas fa-cog me-2"></i>Account Settings
+                            </a>
+                            <a href="/change-password" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Settings -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2 text-primary"></i>Security
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <h6 class="mb-3">Password</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <p class="mb-0">••••••••</p>
+                                    <small class="text-muted">Last changed 30 days ago</small>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm">Change</button>
+                            </div>
+                            
+                            <hr>
+                            
+                            <h6 class="mb-3">Two-Factor Authentication</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="mb-0">Extra security for your account</p>
+                                    <small class="text-danger">Not enabled</small>
+                                </div>
+                                <button class="btn btn-outline-success btn-sm">Enable</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Preferences -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-sliders-h me-2 text-primary"></i>Preferences
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                <label class="form-check-label" for="emailNotifications">
+                                    <strong>Email Notifications</strong>
+                                    <br><small class="text-muted">Receive email about your account activity</small>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                <label class="form-check-label" for="pushNotifications">
+                                    <strong>Push Notifications</strong>
+                                    <br><small class="text-muted">Receive push notifications in browser</small>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="marketingEmails">
+                                <label class="form-check-label" for="marketingEmails">
+                                    <strong>Marketing Emails</strong>
+                                    <br><small class="text-muted">Receive emails about new features and updates</small>
+                                </label>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-sm mt-2">
+                                <i class="fas fa-save me-2"></i>Save Preferences
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+        <script>
+            // Profile image upload
+            document.querySelector('.btn-light').addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            // Update profile image
+                            console.log('Profile image uploaded:', file.name);
+                            alert('Profile image uploaded successfully!');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+            });
+        </script>
+    </div>
+</body>
+</html>

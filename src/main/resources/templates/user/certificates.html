@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Certificates - EduSmart</title>
+    <style>
+        .certificate-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .certificate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .certificate-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .certificate-header::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -50px;
+            right: -50px;
+        }
+        
+        .certificate-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .empty-certificates {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .empty-certificates-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #6c757d;
+            margin: 0 auto 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container py-5">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-2">
+                                <i class="fas fa-certificate text-warning me-2"></i>
+                                My Certificates
+                            </h2>
+                            <p class="text-muted mb-0">View and download your earned certificates</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Overview -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-certificate text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                            <h3 class="mb-1" th:text="${certificates != null ? certificates.size() : 0}">0</h3>
+                            <p class="text-muted mb-0">Total Certificates</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-trophy text-success" style="font-size: 2rem;"></i>
+                            </div>
+                            <h3 class="mb-1">12</h3>
+                            <p class="text-muted mb-0">Achievements</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-clock text-info" style="font-size: 2rem;"></i>
+                            </div>
+                            <h3 class="mb-1">148h</h3>
+                            <p class="text-muted mb-0">Learning Time</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Certificates Grid -->
+            <div class="row" th:if="${certificates != null and !certificates.empty}">
+                <div class="col-lg-6 mb-4" th:each="certificate : ${certificates}">
+                    <div class="certificate-card">
+                        <div class="certificate-header">
+                            <div class="d-flex align-items-start">
+                                <div class="certificate-icon me-3">
+                                    <i class="fas fa-award"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1" th:text="${certificate.courseTitle}">Course Title</h5>
+                                    <p class="mb-0 opacity-75">Certificate of Completion</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Issued Date</small>
+                                        <strong th:text="${#temporals.format(certificate.completionDate, 'MMM dd, yyyy')}">Jan 15, 2025</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Certificate ID</small>
+                                        <strong th:text="${certificate.id}">CERT-001</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Grade</small>
+                                        <strong class="text-success">
+                                            <i class="fas fa-star me-1"></i>Excellent
+                                        </strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Verified</small>
+                                        <strong class="text-primary">
+                                            <i class="fas fa-check-circle me-1"></i>Yes
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary flex-fill" th:onclick="'viewCertificate(\'' + ${certificate.id} + '\')'">
+                                    <i class="fas fa-eye me-2"></i>View
+                                </button>
+                                <button class="btn btn-outline-primary flex-fill" th:onclick="'downloadCertificate(\'' + ${certificate.id} + '\')'">
+                                    <i class="fas fa-download me-2"></i>Download
+                                </button>
+                                <button class="btn btn-outline-secondary" th:onclick="'shareCertificate(\'' + ${certificate.id} + '\')'">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div class="row" th:if="${certificates == null or certificates.empty}">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="empty-certificates">
+                                <div class="empty-certificates-icon">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <h4 class="mb-3">No Certificates Yet</h4>
+                                <p class="text-muted mb-4">
+                                    Complete courses to earn certificates and showcase your achievements!
+                                </p>
+                                <a href="/" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-book-open me-2"></i>Browse Courses
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Achievement Badges -->
+            <div class="row mt-5" th:if="${certificates != null and !certificates.empty}">
+                <div class="col-12 mb-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-trophy text-warning me-2"></i>
+                        Achievement Badges
+                    </h4>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body p-4">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-rocket text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="mb-1">Fast Learner</h6>
+                            <small class="text-muted">Completed 5 courses in 1 month</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body p-4">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-fire text-success" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="mb-1">On Fire</h6>
+                            <small class="text-muted">30-day learning streak</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body p-4">
+                            <div class="bg-warning bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-star text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="mb-1">Perfectionist</h6>
+                            <small class="text-muted">Scored 100% on 3 quizzes</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body p-4">
+                            <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                <i class="fas fa-graduation-cap text-info" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="mb-1">Scholar</h6>
+                            <small class="text-muted">Completed 10+ courses</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+        <script>
+            function viewCertificate(certificateId) {
+                // Open certificate in modal or new window
+                window.open('/api/certificates/' + certificateId + '/view', '_blank', 'width=800,height=600');
+            }
+            
+            function downloadCertificate(certificateId) {
+                // Download certificate PDF
+                window.location.href = '/api/certificates/' + certificateId + '/download';
+            }
+            
+            function shareCertificate(certificateId) {
+                // Share certificate link
+                const shareUrl = window.location.origin + '/certificates/' + certificateId;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'My Certificate',
+                        text: 'Check out my certificate from EduSmart!',
+                        url: shareUrl
+                    }).then(() => {
+                        console.log('Thanks for sharing!');
+                    }).catch(console.error);
+                } else {
+                    // Fallback: Copy to clipboard
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        alert('Certificate link copied to clipboard!');
+                    });
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Learning Dashboard - EduSmart</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container py-4">
+            <!-- Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="h2">
+                        <i class="bi bi-graph-up text-primary me-2"></i>
+                        My Learning Dashboard
+                    </h1>
+                    <p class="text-muted">Track your progress and continue your learning journey</p>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <div class="progress-circle bg-primary text-white mx-auto mb-2">
+                                <span th:text="${dashboard.totalEnrollments}">0</span>
+                            </div>
+                            <h6 class="card-title">Enrolled Courses</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <div class="progress-circle bg-success text-white mx-auto mb-2">
+                                <span th:text="${dashboard.completedCourses}">0</span>
+                            </div>
+                            <h6 class="card-title">Completed Courses</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <div class="progress-circle bg-info text-white mx-auto mb-2">
+                                <span th:text="${#numbers.formatDecimal(dashboard.averageProgress, 1, 1)} + '%'">0%</span>
+                            </div>
+                            <h6 class="card-title">Average Progress</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <div class="progress-circle bg-warning text-white mx-auto mb-2">
+                                <span th:text="${dashboard.certificatesEarned}">0</span>
+                            </div>
+                            <h6 class="card-title">Certificates Earned</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Learning Section -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-book-half me-2"></i>
+                                Continue Learning
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row" th:if="${dashboard.enrolledCourses != null and !dashboard.enrolledCourses.empty}">
+                                <div class="col-lg-6 col-xl-4 mb-3" th:each="course : ${dashboard.enrolledCourses}">
+                                    <div class="card h-100 border">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-1" th:text="${course.title}"></h6>
+                                                <span class="badge"
+                                                      th:classappend="${course.status == 'COMPLETED'} ? 'bg-success' : 'bg-primary'"
+                                                      th:text="${course.status}"></span>
+                                            </div>
+
+                                            <p class="text-muted small mb-3"
+                                               th:text="${#strings.abbreviate(course.description, 80)}"></p>
+
+                                            <!-- Progress Bar -->
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <small class="text-muted">Progress</small>
+                                                    <small class="fw-bold" th:text="${course.progressPercentage} + '%'"></small>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-primary"
+                                                         th:style="'width: ' + ${course.progressPercentage} + '%'"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex gap-2">
+                                                <a th:href="@{/courses/{id}/learn(id=${course.id})}"
+                                                   class="btn btn-primary btn-sm flex-fill">
+                                                    <i class="bi bi-play-circle me-1"></i>Continue
+                                                </a>
+                                                <a th:href="@{/courses/{id}(id=${course.id})}"
+                                                   class="btn btn-outline-secondary btn-sm">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center py-4" th:if="${dashboard.enrolledCourses == null or dashboard.enrolledCourses.empty}">
+                                <i class="bi bi-book display-4 text-muted mb-3"></i>
+                                <h5 class="text-muted">No enrolled courses yet</h5>
+                                <p class="text-muted mb-3">Start your learning journey by enrolling in a course</p>
+                                <a href="/" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>Browse Courses
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity & Achievements -->
+            <div class="row">
+                <!-- Recent Activity -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-activity me-2"></i>
+                                Recent Activity
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item mb-3" th:each="activity : ${recentActivities}">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-check-circle"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1" th:text="${activity.title}"></h6>
+                                            <p class="text-muted small mb-1" th:text="${activity.description}"></p>
+                                            <small class="text-muted" th:text="${activity.timestamp}"></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center py-3" th:if="${recentActivities == null or recentActivities.empty}">
+                                    <p class="text-muted mb-0">No recent activity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements & Certificates -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-award me-2"></i>
+                                Achievements
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="achievement-item mb-3" th:each="certificate : ${certificates}">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0" th:text="${certificate.courseTitle}"></h6>
+                                        <small class="text-muted" th:text="'Completed on ' + ${#temporals.format(certificate.completionDate, 'MMM dd, yyyy')}"></small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center py-3" th:if="${certificates == null or certificates.empty}">
+                                <i class="bi bi-award display-4 text-muted mb-2"></i>
+                                <p class="text-muted small mb-2">Complete courses to earn certificates</p>
+                                <a href="/certificates" class="btn btn-sm btn-outline-primary">View All</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            // Dashboard interactivity
+            document.addEventListener('DOMContentLoaded', function() {
+                // Animate progress bars on scroll
+                const progressBars = document.querySelectorAll('.progress-bar');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.width = entry.target.style.width; // Trigger animation
+                        }
+                    });
+                });
+
+                progressBars.forEach(bar => observer.observe(bar));
+
+                // Auto-refresh dashboard data every 5 minutes
+                setInterval(function() {
+                    // Could implement AJAX call to refresh dashboard data
+                    console.log('Refreshing dashboard data...');
+                }, 300000);
+            });
+        </script>
+    </div>
+</body>
+</html>
