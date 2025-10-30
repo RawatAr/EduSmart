@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSmart - Transform Your Learning Journey</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --dark-bg: #1c1d1f;
+            --light-bg: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            transition: all 0.3s;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+        }
+        
+        .nav-link {
+            color: #1c1d1f !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+        
+        .btn-get-started {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.6rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 120px 0 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            opacity: 0.5;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+        
+        .stat-item h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .stat-item p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        /* Features Section */
+        .features-section {
+            padding: 100px 0;
+            background: white;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--dark-bg);
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            color: #6a6f73;
+            font-size: 1.1rem;
+            margin-bottom: 4rem;
+        }
+        
+        .feature-card {
+            padding: 2.5rem;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            height: 100%;
+            border: 2px solid transparent;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+            border-color: var(--primary-color);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark-bg);
+        }
+        
+        .feature-description {
+            color: #6a6f73;
+            line-height: 1.6;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: var(--primary-gradient);
+            padding: 80px 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-section::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .btn-cta {
+            background: white;
+            color: var(--primary-color);
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(255,255,255,0.3);
+            color: var(--primary-color);
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            background: var(--light-bg);
+            padding: 80px 0;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: #6a6f73;
+            margin-top: 0.5rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 60px 0 30px;
+        }
+        
+        .footer-title {
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-icons a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+        
+        .social-icons a:hover {
+            background: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        /* User Avatar in Navbar */
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .navbar {
+            background: #2d2d2d !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        body.dark-mode .nav-link {
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode .hero-section {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+        
+        body.dark-mode .feature-card,
+        body.dark-mode .stat-card,
+        body.dark-mode .testimonial-card {
+            background: #2d2d2d;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .footer {
+            background: #1a1a1a;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-stats {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <i class="bi bi-mortarboard-fill me-2 fs-3"></i>
+                <span>EduSmart</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/courses}">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{#features}">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-link nav-link" onclick="toggleDarkMode()" id="darkModeToggle">
+                            <i class="bi bi-moon-fill"></i>
+                        </button>
+                    </li>
+                    <!-- Show when logged out -->
+                    <li class="nav-item" id="loginLink">
+                        <a class="nav-link" th:href="@{/login}">Login</a>
+                    </li>
+                    <li class="nav-item" id="registerLink">
+                        <a class="btn btn-get-started" th:href="@{/register}">Get Started</a>
+                    </li>
+                    <!-- Show when logged in -->
+                    <li class="nav-item dropdown d-none" id="userDropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar-small me-2" id="navUserAvatar">U</div>
+                            <span id="navUserName">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/student/dashboard">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="/courses">
+                                <i class="bi bi-book me-2"></i>My Courses
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7 hero-content" data-aos="fade-right">
+                    <h1 class="hero-title">Transform Your Learning Journey</h1>
+                    <p class="hero-subtitle">Join millions of learners worldwide. Master new skills with expert-led courses, interactive assessments, and real-time collaboration.</p>
+                    <div class="d-flex gap-3 mb-4">
+                        <a th:href="@{/courses}" class="btn btn-light btn-lg px-4">
+                            <i class="bi bi-play-circle me-2"></i>Explore Courses
+                        </a>
+                        <a th:href="@{/register}" class="btn btn-outline-light btn-lg px-4">
+                            Start Learning Free
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <h3>10K+</h3>
+                            <p>Active Learners</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>500+</h3>
+                            <p>Expert Instructors</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>1000+</h3>
+                            <p>Premium Courses</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5" data-aos="fade-left">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800" alt="Students Learning" class="img-fluid rounded shadow-lg" style="border-radius: 20px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Powerful Features for Modern Learning</h2>
+            <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">Everything you need to create, manage, and deliver exceptional learning experiences</p>
+            
+            <div class="row g-4">
+                <!-- Course Management -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3 class="feature-title">Course Management</h3>
+                        <p class="feature-description">Create, organize, and manage educational content with our intuitive course builder. Support for video, documents, and interactive materials.</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Assessments -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                        <h3 class="feature-title">Interactive Assessments</h3>
+                        <p class="feature-description">Quizzes, assignments, and exams with automatic grading. Multiple question types and detailed analytics for better learning outcomes.</p>
+                    </div>
+                </div>
+
+                <!-- Progress Tracking -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="feature-title">Progress Tracking</h3>
+                        <p class="feature-description">Visual progress indicators and completion analytics. Track your learning journey with detailed insights and achievement milestones.</p>
+                    </div>
+                </div>
+
+                <!-- Discussion Forums -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="250">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <h3 class="feature-title">Discussion Forums</h3>
+                        <p class="feature-description">Real-time communication between students and instructors. Collaborative learning with threaded discussions and file sharing.</p>
+                    </div>
+                </div>
+
+                <!-- Smart Notifications -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <h3 class="feature-title">Smart Notifications</h3>
+                        <p class="feature-description">Real-time updates for course activities, assignments, and announcements. Never miss important deadlines or updates.</p>
+                    </div>
+                </div>
+
+                <!-- Performance Analytics -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="350">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-bar-chart"></i>
+                        </div>
+                        <h3 class="feature-title">Performance Analytics</h3>
+                        <p class="feature-description">Detailed learning analytics and reporting. Insights into student performance, engagement patterns, and learning outcomes.</p>
+                    </div>
+                </div>
+
+                <!-- Secure Authentication -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="feature-title">Secure Authentication</h3>
+                        <p class="feature-description">JWT-based security with role management (Student, Instructor, Admin). Your data is safe with industry-standard encryption.</p>
+                    </div>
+                </div>
+
+                <!-- Optimized Performance -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="450">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-lightning"></i>
+                        </div>
+                        <h3 class="feature-title">Optimized Performance</h3>
+                        <p class="feature-description">Redis caching for faster response times. Optimized database queries and CDN integration for seamless user experience.</p>
+                    </div>
+                </div>
+
+                <!-- File Management -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <h3 class="feature-title">File Management</h3>
+                        <p class="feature-description">Robust upload and download system for course materials. Support for videos, PDFs, presentations, and more.</p>
+                    </div>
+                </div>
+
+                <!-- Real-time Collaboration -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="550">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="feature-title">Real-time Collaboration</h3>
+                        <p class="feature-description">Live discussion and instant messaging features. Collaborate with peers and instructors in real-time via WebSockets.</p>
+                    </div>
+                </div>
+
+                <!-- Certificate System -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-award"></i>
+                        </div>
+                        <h3 class="feature-title">Certificates & Badges</h3>
+                        <p class="feature-description">Earn certificates upon course completion. Showcase your achievements and build your professional portfolio.</p>
+                    </div>
+                </div>
+
+                <!-- Mobile Responsive -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="650">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-phone"></i>
+                        </div>
+                        <h3 class="feature-title">Mobile Responsive</h3>
+                        <p class="feature-description">Learn anywhere, anytime. Fully responsive design that works seamlessly on desktop, tablet, and mobile devices.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6">
+                    <div class="stat-box" data-aos="zoom-in">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Students Enrolled</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-box" data-aos="zoom-in" data-aos-delay="100">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Courses Available</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-box" data-aos="zoom-in" data-aos-delay="200">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Expert Instructors</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-box" data-aos="zoom-in" data-aos-delay="300">
+                        <div class="stat-number">4.8/5</div>
+                        <div class="stat-label">Average Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container text-center position-relative" style="z-index: 1;">
+            <h2 class="display-4 fw-bold mb-4" data-aos="fade-up">Ready to Start Learning?</h2>
+            <p class="lead mb-4" data-aos="fade-up" data-aos-delay="100">Join thousands of students already learning on EduSmart</p>
+            <a th:href="@{/register}" class="btn btn-cta" data-aos="fade-up" data-aos-delay="200">
+                <i class="bi bi-rocket-takeoff me-2"></i>Get Started for Free
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h4 class="footer-title">
+                        <i class="bi bi-mortarboard-fill me-2"></i>EduSmart
+                    </h4>
+                    <p style="color: rgba(255,255,255,0.8);">Empowering learners worldwide with quality education and interactive learning experiences.</p>
+                    <div class="social-icons mt-3">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 class="footer-title">Company</h5>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/about}">About Us</a></li>
+                        <li><a th:href="@{/about}">Careers</a></li>
+                        <li><a th:href="@{/about}">Press</a></li>
+                        <li><a th:href="@{/about}">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 class="footer-title">Resources</h5>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/courses}">Courses</a></li>
+                        <li><a th:href="@{/contact}">Help Center</a></li>
+                        <li><a th:href="@{/about}">Community</a></li>
+                        <li><a th:href="@{/courses}">Events</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 class="footer-title">Support</h5>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/contact}">Contact</a></li>
+                        <li><a th:href="@{/contact}">FAQ</a></li>
+                        <li><a th:href="@{/about}">Terms of Service</a></li>
+                        <li><a th:href="@{/about}">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 class="footer-title">Get Started</h5>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/login}">Login</a></li>
+                        <li><a th:href="@{/register}">Sign Up</a></li>
+                        <li><a href="#">Become Instructor</a></li>
+                        <li><a href="#">Business</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center" style="color: rgba(255,255,255,0.6);">
+                <p>&copy; 2025 EduSmart. All rights reserved. | Made with <i class="bi bi-heart-fill text-danger"></i> for Learners</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+        
+        // Check authentication and update navbar
+        function updateNavbar() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (token && user.id) {
+                // User is logged in
+                document.getElementById('loginLink').classList.add('d-none');
+                document.getElementById('registerLink').classList.add('d-none');
+                document.getElementById('userDropdown').classList.remove('d-none');
+                
+                // Update user info
+                const initials = user.fullName ? 
+                    user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                    user.username ? user.username[0].toUpperCase() : 'U';
+                
+                document.getElementById('navUserAvatar').textContent = initials;
+                document.getElementById('navUserName').textContent = user.fullName || user.username || 'User';
+            } else {
+                // User is logged out
+                document.getElementById('loginLink').classList.remove('d-none');
+                document.getElementById('registerLink').classList.remove('d-none');
+                document.getElementById('userDropdown').classList.add('d-none');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+        
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.querySelector('#darkModeToggle i');
+            if (isDark) {
+                icon.classList.remove('bi-moon-fill');
+                icon.classList.add('bi-sun-fill');
+            } else {
+                icon.classList.remove('bi-sun-fill');
+                icon.classList.add('bi-moon-fill');
+            }
+        }
+        
+        // Load dark mode preference
+        function loadDarkModePreference() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#darkModeToggle i');
+                if (icon) {
+                    icon.classList.remove('bi-moon-fill');
+                    icon.classList.add('bi-sun-fill');
+                }
+            }
+        }
+        
+        // Update navbar on page load
+        loadDarkModePreference();
+        updateNavbar();
+    </script>
+</body>
+</html>

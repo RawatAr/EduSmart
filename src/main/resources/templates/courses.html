@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Courses - EduSmart</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+        }
+        
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .hero-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 80px 0 60px;
+            margin-bottom: 40px;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 50px;
+            padding: 8px 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+        }
+        
+        .search-box i {
+            color: #999;
+        }
+        
+        .category-pill {
+            display: inline-block;
+            padding: 8px 20px;
+            margin: 5px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-pill:hover, .category-pill.active {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .course-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            height: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .course-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        .course-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: var(--primary-gradient);
+        }
+        
+        .course-card .card-body {
+            padding: 20px;
+        }
+        
+        .course-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1d1f;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .course-instructor {
+            font-size: 14px;
+            color: #6a6f73;
+            margin-bottom: 8px;
+        }
+        
+        .course-rating {
+            color: #e59819;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .course-stats {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #6a6f73;
+        }
+        
+        .course-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1c1d1f;
+        }
+        
+        .course-price-old {
+            font-size: 16px;
+            color: #6a6f73;
+            text-decoration: line-through;
+            margin-left: 8px;
+        }
+        
+        .badge-bestseller {
+            background: #eceb98;
+            color: #3d3c0a;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+        
+        .badge-new {
+            background: #d1fae5;
+            color: #0f766e;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+        
+        .filter-sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .filter-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #1c1d1f;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .navbar {
+            background: white !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .btn-enroll {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-enroll:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Dark Mode */
+        body.dark-mode {
+            background: #121212;
+            color: #e4e4e7;
+        }
+        
+        body.dark-mode .navbar {
+            background: #1e1e1e !important;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode .navbar-brand {
+            color: #a78bfa !important;
+        }
+        
+        body.dark-mode .nav-link {
+            color: #e4e4e7 !important;
+        }
+        
+        body.dark-mode .hero-section {
+            background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+        }
+        
+        body.dark-mode .course-card {
+            background: #1e1e1e;
+            color: #e4e4e7;
+            border: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode .course-title {
+            color: #f4f4f5;
+        }
+        
+        body.dark-mode .course-instructor,
+        body.dark-mode .course-stats {
+            color: #a1a1aa;
+        }
+        
+        body.dark-mode .course-price {
+            color: #f4f4f5;
+        }
+        
+        body.dark-mode .search-box {
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode .search-box input {
+            background: transparent;
+            color: #e4e4e7;
+        }
+        
+        body.dark-mode .filter-sidebar {
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode .filter-title {
+            color: #f4f4f5;
+        }
+        
+        body.dark-mode .form-check-label {
+            color: #d4d4d8;
+        }
+        
+        body.dark-mode .form-select {
+            background: #1e1e1e;
+            color: #e4e4e7;
+            border-color: #2d2d2d;
+        }
+        
+        body.dark-mode .category-pill {
+            background: rgba(255,255,255,0.1);
+            color: #e4e4e7;
+        }
+        
+        body.dark-mode .category-pill:hover,
+        body.dark-mode .category-pill.active {
+            background: rgba(167, 139, 250, 0.3);
+            color: #ffffff;
+        }
+        
+        body.dark-mode .btn-enroll {
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+        }
+        
+        body.dark-mode .btn-outline-primary {
+            color: #a78bfa;
+            border-color: #a78bfa;
+        }
+        
+        body.dark-mode .btn-outline-primary:hover {
+            background: #a78bfa;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <i class="bi bi-mortarboard-fill me-2 fs-3"></i>
+                <span class="fs-4">EduSmart</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" th:href="@{/courses}">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-link nav-link" onclick="toggleDarkMode()" id="darkModeToggle">
+                            <i class="bi bi-moon-fill"></i>
+                        </button>
+                    </li>
+                    <!-- Show when logged out -->
+                    <li class="nav-item" id="loginLink">
+                        <a class="nav-link" th:href="@{/login}">Login</a>
+                    </li>
+                    <li class="nav-item" id="registerLink">
+                        <a class="btn btn-enroll ms-2" th:href="@{/register}">Sign Up</a>
+                    </li>
+                    <!-- Show when logged in -->
+                    <li class="nav-item dropdown d-none" id="userDropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar-small me-2" id="navUserAvatar">U</div>
+                            <span id="navUserName">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/student/dashboard">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="/courses">
+                                <i class="bi bi-book me-2"></i>My Courses
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-3">Explore Our Courses</h1>
+            <p class="lead mb-4">Learn new skills, advance your career, pursue your passions</p>
+            
+            <!-- Search Box -->
+            <div class="search-box d-flex align-items-center">
+                <i class="bi bi-search fs-5"></i>
+                <input type="text" id="searchInput" placeholder="Search for anything..." class="ms-3">
+            </div>
+            
+            <!-- Category Pills -->
+            <div class="mt-4">
+                <span class="category-pill active" data-category="all">All Courses</span>
+                <span class="category-pill" data-category="development">Development</span>
+                <span class="category-pill" data-category="business">Business</span>
+                <span class="category-pill" data-category="design">Design</span>
+                <span class="category-pill" data-category="marketing">Marketing</span>
+                <span class="category-pill" data-category="data-science">Data Science</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container mb-5">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="filter-sidebar">
+                    <h5 class="filter-title">Filters</h5>
+                    
+                    <!-- Rating Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Rating</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="rating5">
+                            <label class="form-check-label" for="rating5">
+                                <span class="text-warning">★★★★★</span> 4.5 & up
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="rating4">
+                            <label class="form-check-label" for="rating4">
+                                <span class="text-warning">★★★★</span>☆ 4.0 & up
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Level Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Level</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="beginner">
+                            <label class="form-check-label" for="beginner">Beginner</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="intermediate">
+                            <label class="form-check-label" for="intermediate">Intermediate</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="advanced">
+                            <label class="form-check-label" for="advanced">Advanced</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Price Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Price</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="free">
+                            <label class="form-check-label" for="free">Free</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="paid">
+                            <label class="form-check-label" for="paid">Paid</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Duration Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Duration</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="short">
+                            <label class="form-check-label" for="short">0-20 hours</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="medium">
+                            <label class="form-check-label" for="medium">20-40 hours</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="long">
+                            <label class="form-check-label" for="long">40+ hours</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Language Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Language</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="english" checked>
+                            <label class="form-check-label" for="english">English</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="hindi">
+                            <label class="form-check-label" for="hindi">Hindi</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Apply Button -->
+                    <button class="btn w-100" style="background: var(--primary-gradient); color: white; font-weight: 600;" onclick="applyAllFilters()">
+                        <i class="bi bi-funnel me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Courses Grid -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0"><span id="courseCount">Loading...</span> courses</h4>
+                    <select class="form-select form-select-sm" style="width: auto;" id="sortBy">
+                        <option value="popularity">Most Popular</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="newest">Newest</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                    </select>
+                </div>
+
+                <div class="row g-4" id="coursesGrid">
+                    <!-- Loading skeleton -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card course-card">
+                            <div class="skeleton" style="height: 180px;"></div>
+                            <div class="card-body">
+                                <div class="skeleton mb-2" style="height: 20px; width: 80%;"></div>
+                                <div class="skeleton mb-2" style="height: 16px; width: 60%;"></div>
+                                <div class="skeleton" style="height: 16px; width: 40%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let allCourses = [];
+        let filteredCourses = [];
+        let currentCategory = 'all';
+        let currentSort = 'popular';
+        
+        // Load courses from database
+        async function loadCourses() {
+            try {
+                const response = await fetch('/api/courses');
+                if (!response.ok) {
+                    console.error('Failed to load courses');
+                    useSampleCourses();
+                    return;
+                }
+                
+                const courses = await response.json();
+                if (courses.length === 0) {
+                    useSampleCourses();
+                    return;
+                }
+                
+                allCourses = courses.map(course => ({
+                    id: course.id,
+                    title: course.title,
+                    instructor: course.instructor?.fullName || 'Instructor',
+                    rating: course.averageRating || parseFloat(course.rating) || 4.5,
+                    reviews: Math.floor(Math.random() * 50000) + 10000,
+                    students: course.enrollmentCount || 0,
+                    price: parseFloat(course.price) || 0,
+                    oldPrice: parseFloat(course.price) * 6.5 || 0,
+                    image: course.thumbnailUrl || 'https://via.placeholder.com/400x250',
+                    category: course.category?.name.toLowerCase().replace(' ', '-') || 'other',
+                    level: course.level?.toLowerCase() || 'beginner',
+                    description: course.description || 'No description available',
+                    duration: course.durationHours || 0
+                }));
+                
+                filteredCourses = [...allCourses];
+                renderCourses(filteredCourses);
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                useSampleCourses();
+            }
+        }
+        
+        // Fallback sample data
+        function useSampleCourses() {
+            allCourses = [
+            {
+                id: 1,
+                title: "Complete Web Development Bootcamp 2024",
+                instructor: "Dr. Angela Yu",
+                rating: 4.7,
+                reviews: 245000,
+                students: 850000,
+                price: 6999,
+                oldPrice: 45999,
+                image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400",
+                category: "development",
+                level: "beginner",
+                badge: "bestseller",
+                description: "Master web development with HTML, CSS, JavaScript, React, Node.js, and more. Build real-world projects and become a full-stack developer.",
+                duration: 52
+            },
+            {
+                id: 2,
+                title: "Python for Data Science and Machine Learning",
+                instructor: "Jose Portilla",
+                rating: 4.6,
+                reviews: 95000,
+                students: 425000,
+                price: 6199,
+                oldPrice: 41499,
+                image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400",
+                category: "data-science",
+                level: "intermediate",
+                badge: "bestseller",
+                description: "Learn Python for data analysis, visualization, and machine learning. Master NumPy, Pandas, Matplotlib, Scikit-Learn, and TensorFlow.",
+                duration: 44
+            },
+            {
+                id: 3,
+                title: "UI/UX Design Masterclass",
+                instructor: "Daniel Walter Scott",
+                rating: 4.8,
+                reviews: 28000,
+                students: 152000,
+                price: 5399,
+                oldPrice: 37299,
+                image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400",
+                category: "design",
+                level: "beginner",
+                badge: "new",
+                description: "Create beautiful user experiences with Figma, Adobe XD, and industry-standard design principles. Build your portfolio from scratch.",
+                duration: 38
+            },
+            {
+                id: 4,
+                title: "Digital Marketing Masterclass - 23 Courses in 1",
+                instructor: "Phil Ebiner",
+                rating: 4.5,
+                reviews: 42000,
+                students: 189000,
+                price: 6599,
+                oldPrice: 43899,
+                image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=400",
+                category: "marketing",
+                level: "beginner",
+                description: "Complete digital marketing course covering SEO, social media, email marketing, content creation, analytics, and paid advertising.",
+                duration: 35
+            },
+            {
+                id: 5,
+                title: "The Complete Business Course",
+                instructor: "Chris Haroun",
+                rating: 4.6,
+                reviews: 15000,
+                students: 78000,
+                price: 5799,
+                oldPrice: 39799,
+                image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400",
+                category: "business",
+                level: "intermediate",
+                description: "Learn business fundamentals, entrepreneurship, finance, and management skills. Perfect for aspiring business owners and professionals.",
+                duration: 28
+            },
+            {
+                id: 6,
+                title: "React - The Complete Guide 2024",
+                instructor: "Maximilian Schwarzmüller",
+                rating: 4.7,
+                reviews: 178000,
+                students: 595000,
+                price: 7499,
+                oldPrice: 48099,
+                image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400",
+                category: "development",
+                level: "intermediate",
+                badge: "bestseller",
+                description: "Master React with Hooks, Redux, Next.js, TypeScript, and more. Build modern, scalable web applications with the latest React features.",
+                duration: 48
+            }
+            ];
+            filteredCourses = [...allCourses];
+            renderCourses(filteredCourses);
+        }
+        
+        function renderCourses(courses) {
+            const grid = document.getElementById('coursesGrid');
+            document.getElementById('courseCount').textContent = courses.length;
+            
+            if (courses.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="text-muted mt-3">No courses found</h4>
+                        <p class="text-muted">Try adjusting your filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = courses.map(course => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card course-card">
+                        <img src="${course.image}" class="course-image" alt="${course.title}">
+                        <div class="card-body">
+                            ${course.badge ? `<span class="badge badge-${course.badge} mb-2">${course.badge === 'bestseller' ? 'Bestseller' : 'New'}</span>` : ''}
+                            <h5 class="course-title">${course.title}</h5>
+                            <p class="course-instructor mb-2">${course.instructor}</p>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="course-rating">${course.rating}</span>
+                                <span class="text-warning">★★★★★</span>
+                                <span class="text-muted" style="font-size: 13px;">(${course.reviews.toLocaleString()})</span>
+                            </div>
+                            <div class="course-stats">
+                                <span><i class="bi bi-people me-1"></i>${(course.students / 1000).toFixed(0)}K students</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div>
+                                    <span class="course-price">₹${course.price.toLocaleString('en-IN')}</span>
+                                    <span class="course-price-old">₹${course.oldPrice.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-outline-primary btn-sm me-1" onclick="viewCourseDetail(${course.id})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" onclick="enrollCourse(${course.id})">
+                                        <i class="bi bi-plus-circle me-1"></i>Enroll
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Category filter
+        document.querySelectorAll('.category-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+                applyFilters();
+            });
+        });
+
+        // Search
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            applyFilters();
+        });
+        
+        // Sorting
+        document.getElementById('sortBy')?.addEventListener('change', function(e) {
+            currentSort = e.target.value;
+            applySorting();
+        });
+        
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredCourses = allCourses.filter(course => {
+                const matchesSearch = !query || 
+                    course.title.toLowerCase().includes(query) || 
+                    course.instructor.toLowerCase().includes(query);
+                
+                const matchesCategory = currentCategory === 'all' || course.category === currentCategory;
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            applySorting();
+        }
+        
+        function applyAllFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredCourses = allCourses.filter(course => {
+                // Search filter
+                const matchesSearch = !query || 
+                    course.title.toLowerCase().includes(query) || 
+                    course.instructor.toLowerCase().includes(query);
+                
+                // Category filter
+                const matchesCategory = currentCategory === 'all' || course.category === currentCategory;
+                
+                // Rating filter
+                const rating5 = document.getElementById('rating5').checked;
+                const rating4 = document.getElementById('rating4').checked;
+                let matchesRating = !rating5 && !rating4;
+                if (rating5) matchesRating = matchesRating || course.rating >= 4.5;
+                if (rating4) matchesRating = matchesRating || course.rating >= 4.0;
+                if (!rating5 && !rating4) matchesRating = true;
+                
+                // Level filter
+                const beginner = document.getElementById('beginner').checked;
+                const intermediate = document.getElementById('intermediate').checked;
+                const advanced = document.getElementById('advanced').checked;
+                let matchesLevel = !beginner && !intermediate && !advanced;
+                if (beginner) matchesLevel = matchesLevel || course.level === 'beginner';
+                if (intermediate) matchesLevel = matchesLevel || course.level === 'intermediate';
+                if (advanced) matchesLevel = matchesLevel || course.level === 'advanced';
+                if (!beginner && !intermediate && !advanced) matchesLevel = true;
+                
+                // Price filter
+                const free = document.getElementById('free').checked;
+                const paid = document.getElementById('paid').checked;
+                let matchesPrice = !free && !paid;
+                if (free) matchesPrice = matchesPrice || course.price === 0;
+                if (paid) matchesPrice = matchesPrice || course.price > 0;
+                if (!free && !paid) matchesPrice = true;
+                
+                // Duration filter
+                const short = document.getElementById('short').checked;
+                const medium = document.getElementById('medium').checked;
+                const long = document.getElementById('long').checked;
+                let matchesDuration = !short && !medium && !long;
+                if (short) matchesDuration = matchesDuration || (course.duration < 20);
+                if (medium) matchesDuration = matchesDuration || (course.duration >= 20 && course.duration < 40);
+                if (long) matchesDuration = matchesDuration || (course.duration >= 40);
+                if (!short && !medium && !long) matchesDuration = true;
+                
+                return matchesSearch && matchesCategory && matchesRating && matchesLevel && matchesPrice && matchesDuration;
+            });
+            
+            applySorting();
+        }
+        
+        function applySorting() {
+            const sortedCourses = [...filteredCourses];
+            
+            switch(currentSort) {
+                case 'popularity':
+                case 'popular':
+                    sortedCourses.sort((a, b) => b.students - a.students);
+                    break;
+                case 'rating':
+                    sortedCourses.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'price-low':
+                    sortedCourses.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-high':
+                    sortedCourses.sort((a, b) => b.price - a.price);
+                    break;
+                case 'newest':
+                    sortedCourses.reverse();
+                    break;
+            }
+            
+            renderCourses(sortedCourses);
+        }
+
+        // Course Detail Function
+        function viewCourseDetail(courseId) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (!course) return;
+            
+            const modalHTML = `
+                <div class="modal fade" id="courseDetailModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${course.title}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <img src="${course.image}" class="img-fluid rounded mb-3" alt="${course.title}">
+                                <p><strong>Instructor:</strong> ${course.instructor}</p>
+                                <p><strong>Level:</strong> ${course.level}</p>
+                                <p><strong>Duration:</strong> ${course.duration} hours</p>
+                                <p><strong>Rating:</strong> ${course.rating} ⭐ (${course.reviews.toLocaleString()} reviews)</p>
+                                <p><strong>Students:</strong> ${course.students.toLocaleString()}</p>
+                                <hr>
+                                <h6>Description</h6>
+                                <p>${course.description}</p>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="h4 text-primary">₹${course.price.toLocaleString('en-IN')}</span>
+                                        <span class="text-decoration-line-through text-muted ms-2">₹${course.oldPrice.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="enrollCourse(${course.id})">
+                                        <i class="bi bi-plus-circle me-2"></i>Enroll Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('courseDetailModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add new modal
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('courseDetailModal'));
+            modal.show();
+        }
+        
+        // Course Enrollment Function
+        async function enrollCourse(courseId) {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token) {
+                alert('Please login to enroll in courses');
+                window.location.href = '/login';
+                return;
+            }
+            
+            const course = allCourses.find(c => c.id === courseId);
+            const courseTitle = course ? course.title : 'this course';
+            
+            if (confirm(`Enroll in "${courseTitle}"?`)) {
+                try {
+                    const response = await fetch('/api/enrollments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            courseId: courseId,
+                            userId: user.id
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Create notification
+                        await createNotification({
+                            userId: user.id,
+                            type: 'COURSE_ENROLLMENT',
+                            title: 'Course Enrollment Successful',
+                            message: `You have successfully enrolled in "${courseTitle}"`,
+                            isRead: false
+                        });
+                        
+                        // Update notification count in localStorage
+                        const currentCount = parseInt(localStorage.getItem('notificationCount') || '0');
+                        localStorage.setItem('notificationCount', (currentCount + 1).toString());
+                        
+                        alert('✅ Successfully enrolled in the course!');
+                        // Close modal if open
+                        const modalEl = document.getElementById('courseDetailModal');
+                        if (modalEl) {
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                        }
+                        // Redirect to dashboard
+                        window.location.href = '/student/dashboard';
+                    } else if (response.status === 409) {
+                        alert('You are already enrolled in this course!');
+                    } else {
+                        const errorData = await response.json().catch(() => ({message: 'Failed to enroll'}));
+                        alert('Error: ' + (errorData.message || 'Failed to enroll'));
+                    }
+                } catch (error) {
+                    console.error('Enrollment error:', error);
+                    alert('Failed to enroll. Please try again.');
+                }
+            }
+        }
+        
+        // Create notification function
+        async function createNotification(notificationData) {
+            const token = localStorage.getItem('token');
+            try {
+                await fetch('/api/notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(notificationData)
+                });
+            } catch (error) {
+                console.error('Error creating notification:', error);
+            }
+        }
+
+        // Check authentication and update navbar
+        function updateNavbar() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (token && user.id) {
+                // User is logged in
+                document.getElementById('loginLink').classList.add('d-none');
+                document.getElementById('registerLink').classList.add('d-none');
+                document.getElementById('userDropdown').classList.remove('d-none');
+                
+                // Update user info
+                const initials = user.fullName ? 
+                    user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                    user.username ? user.username[0].toUpperCase() : 'U';
+                
+                document.getElementById('navUserAvatar').textContent = initials;
+                document.getElementById('navUserName').textContent = user.fullName || user.username || 'User';
+            } else {
+                // User is logged out
+                document.getElementById('loginLink').classList.remove('d-none');
+                document.getElementById('registerLink').classList.remove('d-none');
+                document.getElementById('userDropdown').classList.add('d-none');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+        
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.querySelector('#darkModeToggle i');
+            if (isDark) {
+                icon.classList.remove('bi-moon-fill');
+                icon.classList.add('bi-sun-fill');
+            } else {
+                icon.classList.remove('bi-sun-fill');
+                icon.classList.add('bi-moon-fill');
+            }
+        }
+        
+        // Load dark mode preference
+        function loadDarkModePreference() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#darkModeToggle i');
+                if (icon) {
+                    icon.classList.remove('bi-moon-fill');
+                    icon.classList.add('bi-sun-fill');
+                }
+            }
+        }
+
+        // Initialize
+        loadDarkModePreference();
+        updateNavbar();
+        loadCourses();
+    </script>
+</body>
+</html>

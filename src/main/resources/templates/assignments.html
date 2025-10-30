@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignments - EduSmart</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .assignment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .assignment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .badge-pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .badge-submitted {
+            background: #28a745;
+        }
+        
+        .badge-graded {
+            background: #17a2b8;
+        }
+        
+        .badge-overdue {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/student/dashboard">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <h4 class="mb-0">My Assignments</h4>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <!-- Filter Tabs -->
+                <ul class="nav nav-pills mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-filter="all" href="#" onclick="filterAssignments('all'); return false;">All</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-filter="pending" href="#" onclick="filterAssignments('pending'); return false;">Pending</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-filter="submitted" href="#" onclick="filterAssignments('submitted'); return false;">Submitted</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-filter="graded" href="#" onclick="filterAssignments('graded'); return false;">Graded</a>
+                    </li>
+                </ul>
+
+                <div id="assignmentsList">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || !user.id) {
+            alert('Please login to access this page');
+            window.location.href = '/login';
+        }
+        
+        let allAssignments = [];
+        
+        async function loadAssignments() {
+            try {
+                // Get enrolled courses first
+                const enrollmentsResponse = await fetch(`/api/enrollments/student/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!enrollmentsResponse.ok) {
+                    showEmptyState();
+                    return;
+                }
+                
+                const enrollments = await enrollmentsResponse.json();
+                
+                if (enrollments.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+                
+                // For now, show sample assignments
+                allAssignments = generateSampleAssignments(enrollments);
+                displayAssignments(allAssignments);
+                
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+                showEmptyState();
+            }
+        }
+        
+        function generateSampleAssignments(enrollments) {
+            const assignments = [];
+            const statuses = ['pending', 'submitted', 'graded'];
+            
+            enrollments.forEach((enrollment, index) => {
+                assignments.push({
+                    id: index + 1,
+                    title: `Assignment ${index + 1}: ${enrollment.course.title}`,
+                    course: enrollment.course.title,
+                    description: 'Complete the assigned tasks and submit your work.',
+                    dueDate: new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000),
+                    status: statuses[index % 3],
+                    grade: index % 3 === 2 ? 85 + index : null
+                });
+            });
+            
+            return assignments;
+        }
+        
+        function displayAssignments(assignments) {
+            if (assignments.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            const html = assignments.map(assignment => {
+                const dueDate = new Date(assignment.dueDate);
+                const isOverdue = dueDate < new Date() && assignment.status === 'pending';
+                const statusBadge = isOverdue ? 'badge-overdue' : `badge-${assignment.status}`;
+                const statusText = isOverdue ? 'OVERDUE' : assignment.status.toUpperCase();
+                
+                return `
+                    <div class="assignment-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5>${assignment.title}</h5>
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-book me-2"></i>${assignment.course}
+                                </p>
+                                <p class="mb-3">${assignment.description}</p>
+                                <div class="d-flex gap-3 align-items-center">
+                                    <span class="${isOverdue ? 'text-danger' : 'text-muted'}">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        Due: ${dueDate.toLocaleDateString()}
+                                    </span>
+                                    ${assignment.grade ? `<span class="text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Grade: ${assignment.grade}/100
+                                    </span>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge ${statusBadge} mb-3">${statusText}</span>
+                                ${assignment.status === 'pending' ? `
+                                    <br><button class="btn btn-sm btn-primary" onclick="submitAssignment(${assignment.id})">
+                                        <i class="bi bi-upload me-1"></i>Submit
+                                    </button>
+                                ` : ''}
+                                ${assignment.status === 'graded' ? `
+                                    <br><button class="btn btn-sm btn-outline-primary" onclick="viewFeedback(${assignment.id})">
+                                        <i class="bi bi-eye me-1"></i>View Feedback
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('assignmentsList').innerHTML = html;
+        }
+        
+        function showEmptyState() {
+            document.getElementById('assignmentsList').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">No assignments yet</h5>
+                    <p class="text-muted">Enroll in courses to access assignments</p>
+                    <a href="/courses" class="btn btn-primary">Browse Courses</a>
+                </div>
+            `;
+        }
+        
+        function filterAssignments(filter) {
+            // Update active tab
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter assignments
+            const filtered = filter === 'all' ? 
+                allAssignments : 
+                allAssignments.filter(a => a.status === filter);
+            
+            displayAssignments(filtered);
+        }
+        
+        function submitAssignment(id) {
+            alert('Assignment submission feature coming soon! You will be able to upload files and submit your work.');
+        }
+        
+        function viewFeedback(id) {
+            alert('Viewing feedback for Assignment #' + id + '. Full feedback system coming soon!');
+        }
+        
+        // Load assignments on page load
+        loadAssignments();
+    </script>
+</body>
+</html>

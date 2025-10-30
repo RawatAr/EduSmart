@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - EduSmart</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .settings-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/student/dashboard">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <h4 class="mb-0">Settings</h4>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Profile Settings -->
+                <div class="settings-card">
+                    <h5 class="mb-4"><i class="bi bi-person-circle me-2"></i>Profile Settings</h5>
+                    <form id="profileForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" placeholder="John">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" placeholder="Doe">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" placeholder="john@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" placeholder="johndoe">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Password Change -->
+                <div class="settings-card">
+                    <h5 class="mb-4"><i class="bi bi-shield-lock me-2"></i>Change Password</h5>
+                    <form id="passwordForm">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-key me-2"></i>Update Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div class="settings-card">
+                    <h5 class="mb-4"><i class="bi bi-bell me-2"></i>Notification Preferences</h5>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+                        <label class="form-check-label" for="emailNotif">
+                            Email Notifications
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="courseUpdates" checked>
+                        <label class="form-check-label" for="courseUpdates">
+                            Course Updates
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="assignmentReminders" checked>
+                        <label class="form-check-label" for="assignmentReminders">
+                            Assignment Reminders
+                        </label>
+                    </div>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Save Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || !user.id) {
+            alert('Please login to access this page');
+            window.location.href = '/login';
+        }
+        
+        // Load user data
+        if (user.fullName) {
+            const names = user.fullName.split(' ');
+            document.getElementById('firstName').value = names[0] || '';
+            document.getElementById('lastName').value = names.slice(1).join(' ') || '';
+        }
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('username').value = user.username || '';
+        
+        // Profile form
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value
+            };
+            
+            try {
+                const response = await fetch('/api/users/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    const updatedUser = await response.json();
+                    // Update localStorage
+                    const currentUser = JSON.parse(localStorage.getItem('user'));
+                    currentUser.firstName = updatedUser.firstName;
+                    currentUser.lastName = updatedUser.lastName;
+                    currentUser.fullName = updatedUser.fullName;
+                    currentUser.email = updatedUser.email;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    
+                    alert('✅ Profile updated successfully!');
+                } else {
+                    const error = await response.text();
+                    alert('❌ Failed to update profile: ' + error);
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('❌ Error updating profile');
+            }
+        });
+        
+        // Password form
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPass = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            
+            if (newPass !== confirmPass) {
+                alert('❌ Passwords do not match!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users/password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        currentPassword: currentPass,
+                        newPassword: newPass
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('✅ Password updated successfully!');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    const error = await response.text();
+                    alert('❌ Failed to update password: ' + error);
+                }
+            } catch (error) {
+                console.error('Error updating password:', error);
+                alert('❌ Error updating password');
+            }
+        });
+    </script>
+</body>
+</html>

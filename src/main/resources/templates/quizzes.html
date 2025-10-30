@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Quizzes - EduSmart</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .quiz-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .quiz-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .badge-pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .badge-completed {
+            background: #28a745;
+        }
+        
+        .badge-graded {
+            background: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/student/dashboard">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <h4 class="mb-0">My Quizzes & Assessments</h4>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h3 class="mb-4">Available Assessments</h3>
+                <div id="quizzesList">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Taking Modal -->
+    <div class="modal fade" id="quizModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quizTitle">Quiz</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="progress mb-4" style="height: 5px;">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div id="quizContent"></div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">Previous</button>
+                    <span id="questionCounter">Question 1 of 10</span>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next</button>
+                    <button class="btn btn-success d-none" id="submitBtn" onclick="submitQuiz()">
+                        <i class="bi bi-check-circle me-2"></i>Submit Quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || !user.id) {
+            alert('Please login to access this page');
+            window.location.href = '/login';
+        }
+        
+        let currentQuiz = null;
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let quizModal = null;
+        
+        async function loadQuizzes() {
+            try {
+                // Get all enrolled courses first
+                const enrollmentsResponse = await fetch(`/api/enrollments/student/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const enrollments = await enrollmentsResponse.json();
+                
+                // Get assessments for each course
+                let allQuizzes = [];
+                for (let enrollment of enrollments) {
+                    const quizzesResponse = await fetch(`/api/assessments/course/${enrollment.course.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (quizzesResponse.ok) {
+                        const quizzes = await quizzesResponse.json();
+                        allQuizzes = allQuizzes.concat(quizzes.map(q => ({
+                            ...q,
+                            courseName: enrollment.course.title
+                        })));
+                    }
+                }
+                
+                displayQuizzes(allQuizzes);
+                
+            } catch (error) {
+                console.error('Error loading quizzes:', error);
+                document.getElementById('quizzesList').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Failed to load quizzes. Please try again.
+                    </div>
+                `;
+            }
+        }
+        
+        function displayQuizzes(quizzes) {
+            if (quizzes.length === 0) {
+                document.getElementById('quizzesList').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No quizzes available</h5>
+                        <p class="text-muted">Enroll in courses to access assessments</p>
+                        <a href="/courses" class="btn btn-primary">Browse Courses</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const quizzesHTML = quizzes.map(quiz => {
+                const dueDate = quiz.dueDate ? new Date(quiz.dueDate) : null;
+                const isOverdue = dueDate && dueDate < new Date();
+                
+                return `
+                    <div class="quiz-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5>${quiz.title}</h5>
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-book me-2"></i>${quiz.courseName}
+                                </p>
+                                <p class="mb-2">${quiz.description || 'Complete this assessment'}</p>
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span><i class="bi bi-question-circle me-1"></i>${quiz.totalQuestions || 0} questions</span>
+                                    <span><i class="bi bi-clock me-1"></i>${quiz.duration || 30} minutes</span>
+                                    ${dueDate ? `<span class="${isOverdue ? 'text-danger' : ''}">
+                                        <i class="bi bi-calendar me-1"></i>Due: ${dueDate.toLocaleDateString()}
+                                    </span>` : ''}
+                                </div>
+                            </div>
+                            <div>
+                                ${quiz.submitted ? 
+                                    `<span class="badge badge-completed">Submitted</span>` :
+                                    `<button class="btn btn-primary" onclick="startQuiz(${quiz.id}, '${quiz.title}')">
+                                        <i class="bi bi-play-circle me-2"></i>Start
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('quizzesList').innerHTML = quizzesHTML;
+        }
+        
+        async function startQuiz(quizId, quizTitle) {
+            try {
+                const response = await fetch(`/api/assessments/${quizId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                currentQuiz = await response.json();
+                answers = {};
+                currentQuestionIndex = 0;
+                
+                document.getElementById('quizTitle').textContent = quizTitle;
+                quizModal = new bootstrap.Modal(document.getElementById('quizModal'));
+                quizModal.show();
+                
+                showQuestion(0);
+            } catch (error) {
+                console.error('Error loading quiz:', error);
+                alert('Failed to load quiz');
+            }
+        }
+        
+        function showQuestion(index) {
+            currentQuestionIndex = index;
+            const question = currentQuiz.questions[index];
+            const totalQuestions = currentQuiz.questions.length;
+            
+            // Update progress
+            const progress = ((index + 1) / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionCounter').textContent = 
+                `Question ${index + 1} of ${totalQuestions}`;
+            
+            // Render question
+            let questionHTML = `
+                <h6 class="mb-4">Q${index + 1}. ${question.questionText}</h6>
+                <div class="ms-3">
+            `;
+            
+            if (question.type === 'MULTIPLE_CHOICE' && question.options) {
+                question.options.forEach((option, i) => {
+                    const checked = answers[question.id] === option.id ? 'checked' : '';
+                    questionHTML += `
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" 
+                                   name="q${question.id}" 
+                                   id="opt${i}" 
+                                   value="${option.id}" 
+                                   ${checked}
+                                   onchange="saveAnswer(${question.id}, ${option.id})">
+                            <label class="form-check-label" for="opt${i}">
+                                ${option.optionText}
+                            </label>
+                        </div>
+                    `;
+                });
+            } else if (question.type === 'TRUE_FALSE') {
+                const trueChecked = answers[question.id] === 'true' ? 'checked' : '';
+                const falseChecked = answers[question.id] === 'false' ? 'checked' : '';
+                questionHTML += `
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" 
+                               name="q${question.id}" id="true" value="true" ${trueChecked}
+                               onchange="saveAnswer(${question.id}, 'true')">
+                        <label class="form-check-label" for="true">True</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" 
+                               name="q${question.id}" id="false" value="false" ${falseChecked}
+                               onchange="saveAnswer(${question.id}, 'false')">
+                        <label class="form-check-label" for="false">False</label>
+                    </div>
+                `;
+            } else if (question.type === 'SHORT_ANSWER') {
+                const savedAnswer = answers[question.id] || '';
+                questionHTML += `
+                    <textarea class="form-control" rows="4" 
+                              onchange="saveAnswer(${question.id}, this.value)"
+                              placeholder="Type your answer here...">${savedAnswer}</textarea>
+                `;
+            }
+            
+            questionHTML += '</div>';
+            
+            document.getElementById('quizContent').innerHTML = questionHTML;
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').classList.toggle('d-none', index === totalQuestions - 1);
+            document.getElementById('submitBtn').classList.toggle('d-none', index !== totalQuestions - 1);
+        }
+        
+        function saveAnswer(questionId, answer) {
+            answers[questionId] = answer;
+        }
+        
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                showQuestion(currentQuestionIndex - 1);
+            }
+        }
+        
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuiz.questions.length - 1) {
+                showQuestion(currentQuestionIndex + 1);
+            }
+        }
+        
+        async function submitQuiz() {
+            if (confirm('Submit this quiz? You cannot change your answers after submission.')) {
+                try {
+                    const submission = {
+                        assessmentId: currentQuiz.id,
+                        userId: user.id,
+                        answers: answers
+                    };
+                    
+                    const response = await fetch('/api/submissions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(submission)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        quizModal.hide();
+                        alert(`Quiz submitted successfully! ${result.score ? 'Score: ' + result.score + '/' + result.totalPoints : 'Your submission has been recorded.'}`);
+                        loadQuizzes(); // Refresh the list
+                    } else {
+                        alert('Failed to submit quiz. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error submitting quiz:', error);
+                    alert('Failed to submit quiz. Please try again.');
+                }
+            }
+        }
+        
+        // Load quizzes on page load
+        loadQuizzes();
+    </script>
+</body>
+</html>

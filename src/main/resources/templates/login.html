@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EduSmart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-card {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold mt-3">Welcome Back!</h2>
+                        <p class="text-muted">Sign in to continue your learning journey</p>
+                    </div>
+
+                    <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span id="errorMessage">Invalid username or password</span>
+                    </div>
+
+                    <div th:if="${param.logout}" class="alert alert-success" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        You have been logged out successfully
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Email or Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       placeholder="Email or Username" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Enter your password" required>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="#" class="text-decoration-none small">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 mb-3" id="loginBtn">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+
+                        <div class="text-center">
+                            <span class="text-muted">Don't have an account? </span>
+                            <a th:href="@{/register}" class="text-decoration-none fw-bold">Sign Up</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a th:href="@{/}" class="text-white text-decoration-none">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const emailOrUsername = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
+            errorAlert.classList.add('d-none');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        emailOrUsername: emailOrUsername,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Debug: Log response data
+                    console.log('Login successful, response:', data);
+                    
+                    // Store token and user info
+                    localStorage.setItem('token', data.accessToken);
+                    localStorage.setItem('user', JSON.stringify({
+                        id: data.userId,
+                        username: data.username,
+                        email: data.email,
+                        fullName: data.fullName,
+                        role: data.role
+                    }));
+                    
+                    // Show success message briefly before redirect
+                    loginBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Success! Redirecting...';
+                    loginBtn.classList.remove('btn-primary');
+                    loginBtn.classList.add('btn-success');
+                    
+                    // Redirect based on role after short delay
+                    setTimeout(() => {
+                        const role = data.role;
+                        console.log('Redirecting user with role:', role);
+                        console.log('Full response data:', data);
+                        
+                        let redirectUrl;
+                        if (role === 'ADMIN') {
+                            redirectUrl = '/admin/dashboard';
+                        } else if (role === 'INSTRUCTOR') {
+                            redirectUrl = '/instructor/dashboard';
+                        } else if (role === 'STUDENT') {
+                            redirectUrl = '/student/dashboard';
+                        } else {
+                            // Fallback redirect
+                            console.warn('Unknown role:', role, '- redirecting to home');
+                            redirectUrl = '/';
+                        }
+                        
+                        console.log('Redirecting to:', redirectUrl);
+                        try {
+                            window.location.replace(redirectUrl);
+                        } catch (error) {
+                            console.error('Redirect failed:', error);
+                            window.location.href = redirectUrl;
+                        }
+                    }, 800);
+                } else {
+                    // Show error message
+                    errorMessage.textContent = data.message || 'Invalid email or password';
+                    errorAlert.classList.remove('d-none');
+                    
+                    // Re-enable button
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorAlert.classList.remove('d-none');
+                
+                // Re-enable button
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+            }
+        });
+    </script>
+</body>
+</html>

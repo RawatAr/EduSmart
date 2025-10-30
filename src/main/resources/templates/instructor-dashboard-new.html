@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard - EduSmart</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --instructor-primary: #7c3aed;
+            --instructor-secondary: #a78bfa;
+            --instructor-gradient: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            --sidebar-width: 260px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        /* Sidebar */
+        .instructor-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .instructor-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .instructor-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+        
+        .sidebar-brand {
+            padding: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        
+        .nav-item {
+            margin: 0.25rem 0.75rem;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .nav-link i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--instructor-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .icon-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
+        .icon-green { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; }
+        .icon-orange { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white; }
+        .icon-blue { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); color: white; }
+        
+        /* Course Card */
+        .course-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .course-thumbnail {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .btn-instructor {
+            background: var(--instructor-gradient);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-instructor:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+            color: white;
+        }
+        
+        /* Dark Mode */
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .stats-card,
+        body.dark-mode .course-card,
+        body.dark-mode .top-bar {
+            background: #2d2d2d;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .instructor-sidebar {
+            background: linear-gradient(180deg, #1f1b2e 0%, #151320 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="instructor-sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill"></i>
+            <span>EduSmart</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/instructor/dashboard" class="nav-link active">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/courses" class="nav-link">
+                    <i class="bi bi-book"></i>
+                    <span>My Courses</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/create-course" class="nav-link">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Create Course</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/students" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    <span>Students</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/analytics" class="nav-link">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/revenue" class="nav-link">
+                    <i class="bi bi-currency-dollar"></i>
+                    <span>Revenue</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/messages" class="nav-link">
+                    <i class="bi bi-chat-dots"></i>
+                    <span>Messages</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/instructor/reviews" class="nav-link">
+                    <i class="bi bi-star"></i>
+                    <span>Reviews</span>
+                </a>
+            </div>
+            
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0.75rem;">
+            
+            <div class="nav-item">
+                <a href="/settings" class="nav-link">
+                    <i class="bi bi-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="toggleDarkMode(); return false;">
+                    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    <span>Dark Mode</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="logout(); return false;">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div>
+                <h4 class="mb-0">Welcome back, <span id="instructorName">Instructor</span>!</h4>
+                <small class="text-muted">Here's what's happening with your courses</small>
+            </div>
+            <div class="user-menu">
+                <button class="btn btn-outline-primary btn-sm" onclick="toggleDarkMode()">
+                    <i class="bi bi-moon-fill"></i>
+                </button>
+                <div class="dropdown">
+                    <div class="user-avatar" data-bs-toggle="dropdown">
+                        <span id="userInitials">IN</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/settings">Profile</a></li>
+                        <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-4">
+            <!-- Stats Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon icon-purple">
+                            <i class="bi bi-book-fill"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Total Courses</h6>
+                        <h2 class="mb-0" id="totalCourses">0</h2>
+                        <small class="text-success">
+                            <i class="bi bi-arrow-up"></i> Published
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon icon-green">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Total Students</h6>
+                        <h2 class="mb-0" id="totalStudents">0</h2>
+                        <small class="text-success">
+                            <i class="bi bi-arrow-up"></i> Active learners
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon icon-orange">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Average Rating</h6>
+                        <h2 class="mb-0" id="avgRating">4.5</h2>
+                        <small class="text-warning">
+                            <i class="bi bi-star-fill"></i> Excellent
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon icon-blue">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Total Revenue</h6>
+                        <h2 class="mb-0" id="totalRevenue">₹0</h2>
+                        <small class="text-info">
+                            <i class="bi bi-graph-up"></i> This month
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-8">
+                    <div class="stats-card">
+                        <h5 class="mb-4">Student Enrollment Trend</h5>
+                        <canvas id="enrollmentChart" height="80"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <h5 class="mb-4">Course Performance</h5>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Courses -->
+            <div class="stats-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">My Courses</h5>
+                    <a href="/instructor/create-course" class="btn-instructor">
+                        <i class="bi bi-plus-circle me-2"></i>Create New Course
+                    </a>
+                </div>
+                
+                <div id="coursesList">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted mt-3">Loading your courses...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="stats-card">
+                <h5 class="mb-4">Recent Activity</h5>
+                <div id="recentActivity">
+                    <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                        <div class="stats-icon icon-green me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0"><strong>New student enrolled</strong> in Python Course</p>
+                            <small class="text-muted">2 hours ago</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                        <div class="stats-icon icon-orange me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0"><strong>New 5-star review</strong> on Web Development Course</p>
+                            <small class="text-muted">5 hours ago</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon icon-blue me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <i class="bi bi-chat"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0"><strong>New message</strong> from student</p>
+                            <small class="text-muted">1 day ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        // Check authentication
+        if (!token) {
+            window.location.href = '/login';
+        }
+        
+        // Update user info
+        if (user.firstName && user.lastName) {
+            document.getElementById('instructorName').textContent = `${user.firstName} ${user.lastName}`;
+            document.getElementById('userInitials').textContent = 
+                (user.firstName[0] + user.lastName[0]).toUpperCase();
+        } else if (user.username) {
+            document.getElementById('instructorName').textContent = user.username;
+            document.getElementById('userInitials').textContent = user.username[0].toUpperCase();
+        }
+        
+        // Load instructor data
+        async function loadInstructorData() {
+            try {
+                // Load courses created by this instructor
+                const coursesResponse = await fetch(`/api/courses/instructor/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (coursesResponse.ok) {
+                    const courses = await coursesResponse.json();
+                    displayCourses(courses);
+                    updateStats(courses);
+                } else {
+                    showNoCourses();
+                }
+            } catch (error) {
+                console.error('Error loading instructor data:', error);
+                showNoCourses();
+            }
+        }
+        
+        function displayCourses(courses) {
+            if (courses.length === 0) {
+                showNoCourses();
+                return;
+            }
+            
+            const html = courses.map(course => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="course-card">
+                        <img src="${course.thumbnailUrl || 'https://via.placeholder.com/400x250'}" 
+                             class="course-thumbnail" alt="${course.title}">
+                        <div class="p-3">
+                            <h6>${course.title}</h6>
+                            <p class="text-muted small mb-3">${course.enrollmentCount || 0} students enrolled</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-success">${course.isPublished ? 'Published' : 'Draft'}</span>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editCourse(${course.id})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewStats(${course.id})">
+                                        <i class="bi bi-graph-up"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('coursesList').innerHTML = `<div class="row">${html}</div>`;
+        }
+        
+        function showNoCourses() {
+            document.getElementById('coursesList').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">No courses yet</h5>
+                    <p class="text-muted">Create your first course to start teaching!</p>
+                    <a href="/instructor/create-course" class="btn-instructor">
+                        <i class="bi bi-plus-circle me-2"></i>Create Your First Course
+                    </a>
+                </div>
+            `;
+        }
+        
+        function updateStats(courses) {
+            document.getElementById('totalCourses').textContent = courses.length;
+            const totalStudents = courses.reduce((sum, c) => sum + (c.enrollmentCount || 0), 0);
+            document.getElementById('totalStudents').textContent = totalStudents;
+            
+            const avgRating = courses.length > 0 ? 
+                (courses.reduce((sum, c) => sum + (c.averageRating || 0), 0) / courses.length).toFixed(1) : '0.0';
+            document.getElementById('avgRating').textContent = avgRating;
+            
+            const revenue = courses.reduce((sum, c) => 
+                sum + ((c.price || 0) * (c.enrollmentCount || 0)), 0);
+            document.getElementById('totalRevenue').textContent = `₹${revenue.toLocaleString('en-IN')}`;
+        }
+        
+        // Charts
+        function createCharts() {
+            // Enrollment Chart
+            const enrollmentCtx = document.getElementById('enrollmentChart');
+            new Chart(enrollmentCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Student Enrollments',
+                        data: [12, 19, 15, 25, 32, 38],
+                        borderColor: '#7c3aed',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Performance Chart
+            const performanceCtx = document.getElementById('performanceChart');
+            new Chart(performanceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#10b981', '#f59e0b', '#6b7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+        
+        function editCourse(id) {
+            window.location.href = `/instructor/edit-course/${id}`;
+        }
+        
+        function viewStats(id) {
+            window.location.href = `/instructor/course-analytics/${id}`;
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.getElementById('darkModeIcon');
+            if (isDark) {
+                icon.classList.remove('bi-moon-fill');
+                icon.classList.add('bi-sun-fill');
+            } else {
+                icon.classList.remove('bi-sun-fill');
+                icon.classList.add('bi-moon-fill');
+            }
+        }
+        
+        // Load dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeIcon').classList.remove('bi-moon-fill');
+            document.getElementById('darkModeIcon').classList.add('bi-sun-fill');
+        }
+        
+        // Initialize
+        loadInstructorData();
+        createCharts();
+    </script>
+</body>
+</html>

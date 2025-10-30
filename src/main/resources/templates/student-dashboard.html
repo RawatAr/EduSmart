@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - EduSmart</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+        }
+        
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            min-height: 100vh;
+            background: var(--primary-gradient);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-brand {
+            padding: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-menu-item {
+            padding: 0.9rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-menu-item:hover, .sidebar-menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: white;
+        }
+        
+        .sidebar-menu-item i {
+            margin-right: 0.8rem;
+            font-size: 1.2rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+        
+        /* Top Bar */
+        .topbar {
+            background: white;
+            padding: 1rem 2rem;
+            margin: -2rem -2rem 2rem -2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card.primary {
+            border-left-color: #667eea;
+        }
+        
+        .stats-card.success {
+            border-left-color: #28a745;
+        }
+        
+        .stats-card.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .stats-card.info {
+            border-left-color: #17a2b8;
+        }
+        
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stats-icon.primary { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+        .stats-icon.success { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+        .stats-icon.warning { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+        .stats-icon.info { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+        
+        /* Course Card */
+        .course-card-dashboard {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .course-card-dashboard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .course-thumbnail {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: var(--primary-gradient);
+        }
+        
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 10px;
+            background: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: width 0.3s;
+        }
+        
+        /* Activity Feed */
+        .activity-item {
+            padding: 1rem;
+            border-left: 3px solid #e0e0e0;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .activity-item:hover {
+            border-left-color: var(--primary-color);
+            background: #f8f9fa;
+        }
+        
+        /* Dark Mode */
+        body.dark-mode {
+            background: #0f1419;
+            color: #e4e4e7;
+        }
+        
+        body.dark-mode .sidebar {
+            background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+        }
+        
+        body.dark-mode .topbar {
+            background: #1e1e1e;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode .search-box input {
+            background: #2d2d2d;
+            color: #e4e4e7;
+            border-color: #3d3d3d;
+        }
+        
+        body.dark-mode .stats-card {
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode .stats-card .text-muted {
+            color: #a1a1aa !important;
+        }
+        
+        body.dark-mode .bg-white {
+            background: #1e1e1e !important;
+        }
+        
+        body.dark-mode .course-card-dashboard {
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+        }
+        
+        body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+            color: #f4f4f5;
+        }
+        
+        body.dark-mode .text-muted {
+            color: #a1a1aa !important;
+        }
+        
+        body.dark-mode .activity-item {
+            border-left-color: #3d3d3d;
+        }
+        
+        body.dark-mode .activity-item:hover {
+            background: #2d2d2d;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -260px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill me-2"></i>EduSmart
+        </div>
+        <div class="sidebar-menu">
+            <a href="#" class="sidebar-menu-item active">
+                <i class="bi bi-grid-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            <div id="enrolledCoursesSidebar">
+                <!-- Enrolled courses will be dynamically added here -->
+            </div>
+            <a href="/assignments" class="sidebar-menu-item">
+                <i class="bi bi-clipboard-check"></i>
+                <span>Assignments</span>
+            </a>
+            <a href="/quizzes" class="sidebar-menu-item">
+                <i class="bi bi-patch-question"></i>
+                <span>Quizzes</span>
+            </a>
+            <a href="/discussions" class="sidebar-menu-item">
+                <i class="bi bi-chat-dots"></i>
+                <span>Discussions</span>
+            </a>
+            <a href="/progress" class="sidebar-menu-item">
+                <i class="bi bi-graph-up"></i>
+                <span>Progress</span>
+            </a>
+            <a href="/certificates" class="sidebar-menu-item">
+                <i class="bi bi-award"></i>
+                <span>Certificates</span>
+            </a>
+            <a href="/settings" class="sidebar-menu-item">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+        <div style="position: absolute; bottom: 2rem; width: 100%; padding: 0 1.5rem;">
+            <button class="btn btn-outline-light w-100" onclick="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search courses, assignments..." id="searchInput">
+            </div>
+            <div class="user-menu">
+                <button class="btn btn-link" onclick="toggleDarkMode()" id="darkModeToggle" style="color: #666;">
+                    <i class="bi bi-moon-fill fs-5"></i>
+                </button>
+                <div class="position-relative">
+                    <i class="bi bi-bell fs-4" style="cursor: pointer;" onclick="showNotifications()"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount">
+                        0
+                    </span>
+                </div>
+                <div class="user-avatar" id="userAvatar">S</div>
+                <span id="userName">Student</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboardContent">
+            <h2 class="mb-4">Welcome back, <span id="welcomeName">Student</span>! 👋</h2>
+            
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card primary">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Enrolled Courses</p>
+                                <h3 class="mb-0" id="enrolledCount">0</h3>
+                            </div>
+                            <div class="stats-icon primary">
+                                <i class="bi bi-book"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Completed</p>
+                                <h3 class="mb-0" id="completedCount">0</h3>
+                            </div>
+                            <div class="stats-icon success">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">In Progress</p>
+                                <h3 class="mb-0" id="inProgressCount">0</h3>
+                            </div>
+                            <div class="stats-icon warning">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Certificates</p>
+                                <h3 class="mb-0" id="certificatesCount">0</h3>
+                            </div>
+                            <div class="stats-icon info">
+                                <i class="bi bi-award"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Continue Learning -->
+                <div class="col-lg-8">
+                    <div class="bg-white rounded-3 p-4 shadow-sm">
+                        <h5 class="mb-4">Continue Learning</h5>
+                        <div id="coursesList">
+                            <div class="text-center py-5">
+                                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-3">You haven't enrolled in any courses yet.</p>
+                                <a href="/courses" class="btn btn-primary">Browse Courses</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Chart -->
+                    <div class="bg-white rounded-3 p-4 shadow-sm mt-4">
+                        <h5 class="mb-4">Learning Progress</h5>
+                        <canvas id="progressChart" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="col-lg-4">
+                    <div class="bg-white rounded-3 p-4 shadow-sm">
+                        <h5 class="mb-4">Recent Activity</h5>
+                        <div id="activityFeed">
+                            <div class="activity-item">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-bell text-primary me-3 fs-5"></i>
+                                    <div>
+                                        <p class="mb-1 fw-semibold">Welcome to EduSmart!</p>
+                                        <small class="text-muted">Start learning today</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upcoming Deadlines -->
+                    <div class="bg-white rounded-3 p-4 shadow-sm mt-4">
+                        <h5 class="mb-4">Upcoming Deadlines</h5>
+                        <div id="deadlinesList">
+                            <p class="text-muted text-center">No upcoming deadlines</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || user.role !== 'STUDENT') {
+            window.location.href = '/login';
+        } else {
+            // Update user info
+            const initials = user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'S';
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('userName').textContent = user.fullName || user.username;
+            document.getElementById('welcomeName').textContent = user.fullName || user.username;
+            
+            loadDashboardData();
+        }
+        
+        function updateSidebarCourses(enrollments) {
+            const sidebarDiv = document.getElementById('enrolledCoursesSidebar');
+            if (!sidebarDiv) return;
+            
+            if (enrollments.length === 0) {
+                sidebarDiv.innerHTML = `
+                    <a href="/courses" class="sidebar-menu-item">
+                        <i class="bi bi-book"></i>
+                        <span>Browse Courses</span>
+                    </a>
+                `;
+                return;
+            }
+            
+            let coursesHTML = '<div style="padding: 0.5rem 1.5rem; color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">My Courses</div>';
+            
+            enrollments.slice(0, 5).forEach(enrollment => {
+                const course = enrollment.course || {};
+                const shortTitle = course.title && course.title.length > 25 ? 
+                    course.title.substring(0, 25) + '...' : course.title || 'Untitled';
+                
+                coursesHTML += `
+                    <a href="/course-detail?id=${course.id}" class="sidebar-menu-item" style="padding-left: 2rem;">
+                        <i class="bi bi-play-circle"></i>
+                        <span style="font-size: 0.9rem;">${shortTitle}</span>
+                    </a>
+                `;
+            });
+            
+            if (enrollments.length > 5) {
+                coursesHTML += `
+                    <a href="/courses" class="sidebar-menu-item" style="padding-left: 2rem;">
+                        <i class="bi bi-three-dots"></i>
+                        <span style="font-size: 0.9rem;">View All (${enrollments.length})</span>
+                    </a>
+                `;
+            }
+            
+            sidebarDiv.innerHTML = coursesHTML;
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.querySelector('#darkModeToggle i');
+            if (isDark) {
+                icon.classList.remove('bi-moon-fill');
+                icon.classList.add('bi-sun-fill');
+            } else {
+                icon.classList.remove('bi-sun-fill');
+                icon.classList.add('bi-moon-fill');
+            }
+        }
+        
+        function loadDarkModePreference() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#darkModeToggle i');
+                if (icon) {
+                    icon.classList.remove('bi-moon-fill');
+                    icon.classList.add('bi-sun-fill');
+                }
+            }
+        }
+        
+        // Load dark mode preference on page load
+        loadDarkModePreference();
+
+        async function loadDashboardData() {
+            try {
+                await loadEnrolledCourses();
+                await loadNotifications();
+                initializeProgressChart();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        async function loadEnrolledCourses() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            try {
+                const response = await fetch(`/api/enrollments/student/${user.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to load enrollments');
+                    return;
+                }
+                
+                const enrollments = await response.json();
+                
+                // Update stats
+                document.getElementById('enrolledCount').textContent = enrollments.length;
+                
+                let completedCount = 0;
+                let inProgressCount = 0;
+                
+                enrollments.forEach(enrollment => {
+                    const progress = enrollment.progress || 0;
+                    if (progress === 100) completedCount++;
+                    else if (progress > 0) inProgressCount++;
+                });
+                
+                document.getElementById('completedCount').textContent = completedCount;
+                document.getElementById('inProgressCount').textContent = inProgressCount;
+                
+                // Update sidebar with enrolled courses
+                updateSidebarCourses(enrollments);
+                
+                // Display courses
+                if (enrollments.length === 0) {
+                    document.getElementById('coursesList').innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">You haven't enrolled in any courses yet.</p>
+                            <a href="/courses" class="btn btn-primary">Browse Courses</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const coursesHTML = enrollments.map(enrollment => {
+                    const progress = enrollment.progress || 0;
+                    const course = enrollment.course || {};
+                    
+                    return `
+                        <div class="col-md-6 mb-3">
+                            <div class="course-card-dashboard">
+                                <img src="${course.thumbnailUrl || 'https://via.placeholder.com/400x150'}" 
+                                     class="course-thumbnail" alt="${course.title}">
+                                <div class="p-3">
+                                    <h6 class="mb-2">${course.title || 'Untitled Course'}</h6>
+                                    <div class="progress-bar-custom mb-2">
+                                        <div class="progress-bar-fill" style="width: ${progress}%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">${progress}% Complete</small>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewCourse(${course.id})">
+                                            Continue
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('coursesList').innerHTML = `<div class="row">${coursesHTML}</div>`;
+                
+            } catch (error) {
+                console.error('Error loading enrolled courses:', error);
+            }
+        }
+        
+        async function loadNotifications() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            try {
+                const response = await fetch(`/api/notifications/user/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    const storedCount = localStorage.getItem('notificationCount') || '0';
+                    document.getElementById('notificationCount').textContent = storedCount;
+                    return;
+                }
+                
+                const notifications = await response.json();
+                const unreadCount = notifications.filter(n => !n.isRead).length;
+                
+                document.getElementById('notificationCount').textContent = unreadCount;
+                localStorage.setItem('notificationCount', unreadCount.toString());
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                const storedCount = localStorage.getItem('notificationCount') || '0';
+                document.getElementById('notificationCount').textContent = storedCount;
+            }
+        }
+        
+        function viewCourse(courseId) {
+            window.location.href = `/course-detail?id=${courseId}`;
+        }
+        
+        function initializeProgressChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Hours Learned',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function showNotifications() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            try {
+                const response = await fetch(`/api/notifications/user/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    showNotificationModal([]);
+                    return;
+                }
+                
+                const notifications = await response.json();
+                showNotificationModal(notifications);
+                
+                // Mark as read
+                notifications.forEach(async (n) => {
+                    if (!n.isRead) {
+                        await fetch(`/api/notifications/${n.id}/read`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                    }
+                });
+                
+                // Update notification count
+                document.getElementById('notificationCount').textContent = '0';
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                showNotificationModal([]);
+            }
+        }
+        
+        function showNotificationModal(notifications) {
+            let notifHTML = notifications.length > 0 ? notifications.map(n => `
+                <div class="activity-item">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-${getNotificationIcon(n.type)} text-primary me-3 fs-5"></i>
+                        <div class="flex-grow-1">
+                            <p class="mb-1 fw-semibold">${n.title}</p>
+                            <small class="text-muted">${n.message}</small>
+                            <br><small class="text-muted">${formatDate(n.createdAt)}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-muted text-center py-4">No notifications</p>';
+            
+            // Create and show modal
+            const modalHTML = `
+                <div class="modal fade" id="notificationModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="bi bi-bell me-2"></i>Notifications</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${notifHTML}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal
+            const existingModal = document.getElementById('notificationModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add new modal
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            modal.show();
+        }
+        
+        function showAssignments(event) {
+            if (event) event.preventDefault();
+            window.location.href = '/assignments.html';
+            return false;
+        }
+        
+        function showQuizzes(event) {
+            if (event) event.preventDefault();
+            window.location.href = '/quizzes.html';
+            return false;
+        }
+        
+        function showDiscussions(event) {
+            if (event) event.preventDefault();
+            window.location.href = '/discussions.html';
+            return false;
+        }
+        
+        function showProgress(event) {
+            if (event) event.preventDefault();
+            window.location.href = '/progress.html';
+            return false;
+        }
+        
+        async function showCertificates() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            const response = await fetch(`/api/certificates/user/${user.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            const certificates = await response.json();
+            document.getElementById('certificatesCount').textContent = certificates.length;
+            
+            if (certificates.length > 0) {
+                window.location.href = '/certificates.html';
+            } else {
+                alert('You haven\'t earned any certificates yet. Complete a course to get your first certificate!');
+            }
+        }
+        
+        function showSettings() {
+            window.location.href = '/settings.html';
+        }
+        
+        function getNotificationIcon(type) {
+            const icons = {
+                'COURSE_ENROLLMENT': 'book',
+                'ASSIGNMENT': 'clipboard-check',
+                'GRADE': 'graph-up',
+                'DISCUSSION': 'chat-dots',
+                'ANNOUNCEMENT': 'megaphone'
+            };
+            return icons[type] || 'bell';
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+            return `${Math.floor(diffMins / 1440)}d ago`;
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            if (!query) {
+                loadEnrolledCourses();
+                return;
+            }
+            
+            // Search in enrolled courses and other content
+            const courseCards = document.querySelectorAll('.course-card-dashboard');
+            courseCards.forEach(card => {
+                const title = card.querySelector('h6')?.textContent.toLowerCase() || '';
+                if (title.includes(query)) {
+                    card.closest('.col-md-6').style.display = '';
+                } else {
+                    card.closest('.col-md-6').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

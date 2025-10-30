@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Progress - EduSmart</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .progress-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .course-progress-item {
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar-custom {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/student/dashboard">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <h4 class="mb-0">Learning Progress</h4>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <!-- Overall Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="progress-card text-center">
+                            <i class="bi bi-book text-primary fs-2"></i>
+                            <h3 class="mt-2 mb-0" id="totalCourses">0</h3>
+                            <p class="text-muted mb-0">Total Courses</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="progress-card text-center">
+                            <i class="bi bi-check-circle text-success fs-2"></i>
+                            <h3 class="mt-2 mb-0" id="completedCourses">0</h3>
+                            <p class="text-muted mb-0">Completed</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="progress-card text-center">
+                            <i class="bi bi-hourglass-split text-warning fs-2"></i>
+                            <h3 class="mt-2 mb-0" id="inProgressCourses">0</h3>
+                            <p class="text-muted mb-0">In Progress</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="progress-card text-center">
+                            <i class="bi bi-trophy text-danger fs-2"></i>
+                            <h3 class="mt-2 mb-0" id="totalCertificates">0</h3>
+                            <p class="text-muted mb-0">Certificates</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Chart -->
+                <div class="progress-card">
+                    <h5 class="mb-4">Learning Activity</h5>
+                    <canvas id="activityChart" height="80"></canvas>
+                </div>
+
+                <!-- Course-wise Progress -->
+                <div class="progress-card">
+                    <h5 class="mb-4">Course Progress</h5>
+                    <div id="courseProgressList">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || !user.id) {
+            alert('Please login to access this page');
+            window.location.href = '/login';
+        }
+        
+        async function loadProgress() {
+            try {
+                const response = await fetch(`/api/enrollments/student/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    showEmptyState();
+                    return;
+                }
+                
+                const enrollments = await response.json();
+                
+                if (enrollments.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+                
+                // Calculate stats
+                const totalCourses = enrollments.length;
+                const completedCourses = enrollments.filter(e => (e.progress || 0) === 100).length;
+                const inProgressCourses = enrollments.filter(e => {
+                    const progress = e.progress || 0;
+                    return progress > 0 && progress < 100;
+                }).length;
+                
+                // Update stats
+                document.getElementById('totalCourses').textContent = totalCourses;
+                document.getElementById('completedCourses').textContent = completedCourses;
+                document.getElementById('inProgressCourses').textContent = inProgressCourses;
+                
+                // Display course progress
+                displayCourseProgress(enrollments);
+                
+                // Create activity chart
+                createActivityChart(enrollments);
+                
+            } catch (error) {
+                console.error('Error loading progress:', error);
+                showEmptyState();
+            }
+        }
+        
+        function displayCourseProgress(enrollments) {
+            const html = enrollments.map(enrollment => {
+                const progress = enrollment.progress || 0;
+                const course = enrollment.course || {};
+                
+                return `
+                    <div class="course-progress-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">${course.title || 'Untitled Course'}</h6>
+                            <span class="badge ${progress === 100 ? 'bg-success' : 'bg-primary'}">${progress}%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-bar-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">
+                                ${progress === 100 ? 'Completed' : `${progress}% completed`}
+                            </small>
+                            <a href="/courses" class="btn btn-sm btn-outline-primary">Continue Learning</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('courseProgressList').innerHTML = html;
+        }
+        
+        function createActivityChart(enrollments) {
+            const ctx = document.getElementById('activityChart');
+            
+            // Generate sample activity data
+            const last7Days = [];
+            const activityData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                activityData.push(Math.floor(Math.random() * 4) + 1); // Random activity hours
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Learning Hours',
+                        data: activityData,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'h';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function showEmptyState() {
+            document.getElementById('courseProgressList').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-graph-up text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">No progress to track yet</h5>
+                    <p class="text-muted">Enroll in courses to start tracking your progress</p>
+                    <a href="/courses" class="btn btn-primary">Browse Courses</a>
+                </div>
+            `;
+        }
+        
+        // Load progress on page load
+        loadProgress();
+    </script>
+</body>
+</html>
